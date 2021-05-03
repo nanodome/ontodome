@@ -18,9 +18,13 @@ int main()
     addRelation<hasPart,Thing,Thing>(&a,&c);
     addRelation<hasPart,Thing,Thing>(&a,&d);
 
+    addRelation<hasConnection,Thing,Thing>(&b,&c);
+    addRelation<hasConnection,Thing,Thing>(&b,&d);
+    addRelation<hasConnection,Thing,Thing>(&c,&d);
+
     addRelation<hasProperty,Thing,Thing>(&a,&dens);
 
-    std::vector<hasProperty*> rel = a.getRelation<hasProperty>();
+    auto rel = a.getRelation<hasConnection>();
 
     for(auto &i: rel)
         std::cout << i->getDomain()->getName() << ' '
