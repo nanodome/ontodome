@@ -38,13 +38,28 @@ public:
         if(_o0==_o1)
             abort();
     }
+
+    std::string getRelationName() const { return "hasProperPart"; }
 };
 
-class hasConnection : public Relation {};
+class hasConnection : public Relation {
+public:
+  hasConnection(Thing* _o0, Thing* _o1) : Relation(_o0,_o1) {}
 
-class hasSign : public Relation {};
+  std::string getRelationName() const { return "hasConnection"; }
+};
 
-class hasProperty : public hasSign {};
+class hasSign : public Relation {
+public:
+  hasSign(Thing* _o0, Thing* _o1) : Relation(_o0,_o1) {}
+};
+
+class hasProperty : public hasSign {
+public:
+  hasProperty(Thing* _o0, Thing* _o1) : hasSign(_o0,_o1) {}
+
+  std::string getRelationName() const { return "hasProperty"; }
+};
 
 
 // Relation based functions
