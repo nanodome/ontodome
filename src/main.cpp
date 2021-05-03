@@ -1,12 +1,25 @@
 #include <iostream>
 
-#include "object.h"
+#include "base/thing.h"
 
 int main()
 {
-    Object o;
+   Object a;
+   Atom b;
+   Atom c;
 
-    std::cout << o.getClassName() << std::endl;
+   addRelation<hasPart,Object,Object>(&a,&b);
 
-    return 0;
+//    a.getRelation<hasPart>()->getName();
+
+   addRelation<hasProperty,Object,Object>(&b,&c);
+   addRelation<hasPart,Object,Object>(&c,&b);
+   addRelation<hasPart,Object,Object>(&c,&a);
+
+   auto rels = c.getRelation<hasSign>();
+//    for (auto i: c.getRelation<hasPart>())
+//      std::cout << "Relation type is: " << i->getName() << std::endl;
+
+//    std::cout << "Hello World!" << std::endl;
+   return 0;
 }
