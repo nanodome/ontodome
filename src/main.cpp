@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 
-#include "thing.h"
+#include "base/thing.h"
 
 int main()
 {
