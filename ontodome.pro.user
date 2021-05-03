@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 4.13.2, 2021-05-03T14:57:15. -->
+<!-- Written by QtCreator 4.13.2, 2021-05-03T15:14:27. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -323,9 +323,8 @@
     <valuelist type="QVariantList" key="CustomOutputParsers"/>
     <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">ontodome2</value>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">Qt4ProjectManager.Qt4RunConfiguration:/home/sim/Desktop/ontodome/ontodome/src/ontodome.pro</value>
-    <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">/home/sim/Desktop/ontodome/ontodome/src/ontodome.pro</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">Qt4ProjectManager.Qt4RunConfiguration:/home/sim/Desktop/ontodome/ontodome/ontodome.pro</value>
+    <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">/home/sim/Desktop/ontodome/ontodome/ontodome.pro</value>
     <value type="QString" key="RunConfiguration.Arguments"></value>
     <value type="bool" key="RunConfiguration.Arguments.multi">false</value>
     <value type="QString" key="RunConfiguration.OverrideDebuggerStartup"></value>

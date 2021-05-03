@@ -22,6 +22,7 @@ int main()
         std::cout << i->getDomain()->getName() << ' '
                   << i->getRelationName() << ' '
                   << i->getRange()->getName() << std::endl;
+    std::cout << "commit test" << std::endl;
 
     return 0;
 }

@@ -4,10 +4,10 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += \
-		base/relation.cpp \
-		base/thing.cpp \
-		main.cpp
+		src/main.cpp \
+		src/base/relation.cpp \
+		src/base/thing.cpp
 
 HEADERS += \
-		base/relation.h \
-		base/thing.h
+		src/base/relation.h \
+		src/base/thing.h
