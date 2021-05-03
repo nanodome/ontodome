@@ -1,25 +1,27 @@
 #include <iostream>
+#include <vector>
 
-#include "base/thing.h"
+#include "thing.h"
 
 int main()
 {
-   Object a;
-   Atom b;
-   Atom c;
+    Physical universe("universe");
 
-   addRelation<hasPart,Object,Object>(&a,&b);
+    Item a("H2O");
+    Elementary b("H");
+    Elementary c("O");
+    Elementary d("H");
 
-//    a.getRelation<hasPart>()->getName();
+    addRelation<hasPart,Thing,Thing>(&a,&b);
+    addRelation<hasPart,Thing,Thing>(&a,&c);
+    addRelation<hasPart,Thing,Thing>(&a,&d);
 
-   addRelation<hasProperty,Object,Object>(&b,&c);
-   addRelation<hasPart,Object,Object>(&c,&b);
-   addRelation<hasPart,Object,Object>(&c,&a);
+    std::vector<hasOverlap*> rel = a.getRelation<hasOverlap>();
 
-   auto rels = c.getRelation<hasSign>();
-//    for (auto i: c.getRelation<hasPart>())
-//      std::cout << "Relation type is: " << i->getName() << std::endl;
+    for(auto &i: rel)
+        std::cout << i->getDomain()->getName() << ' '
+                  << i->getRelationName() << ' '
+                  << i->getRange()->getName() << std::endl;
 
-//    std::cout << "Hello World!" << std::endl;
-   return 0;
+    return 0;
 }
