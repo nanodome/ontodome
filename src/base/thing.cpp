@@ -18,6 +18,7 @@ std::vector<T*> Thing::getRelation()
          std::cout << "No " << str.substr(3,str.size()) << " relations found" << std::endl;
          abort();
        }
-       else
+       else {
          return rels;
+       }
 }

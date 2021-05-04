@@ -2,6 +2,7 @@
 #define RELATION_H
 
 #include <string>
+#include <vector>
 
 class Thing;
 
