@@ -32,7 +32,8 @@
 /// Class implementing the gas phase.
 /// The gas phase is univocally determined knowing pressure, temperature and species molar fractions.
 /// Access to species properties is provided by species name by means of an hash map.
-class GasPhase {
+class GasPhase  : public ContinuumModel
+{
 
 protected:
 
@@ -47,6 +48,9 @@ protected:
     std::valarray<double> c; ///< Species molar fraction
 
 public:
+    GasPhase() : ContinuumModel("GasPhase") {}
+
+    std::string getClassName() const { return "Gas Phase Continuum Model"; }
 
     /// Get gas phase pressure [Pa]
     double get_p() const { return p; }

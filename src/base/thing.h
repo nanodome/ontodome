@@ -33,6 +33,27 @@ public:
     std::vector<T*> getRelation();
 };
 
+class Model : public Thing {
+public:
+    Model(std::string _name) : Thing(_name) {}
+
+    std::string getClassName() const { return "Model"; }
+};
+
+class PhysicsBasedModel : public Model {
+public:
+    PhysicsBasedModel(std::string _name) : Model(_name) {}
+
+    std::string getClassName() const { return "Collection"; }
+};
+
+class ContinuumModel : public PhysicsBasedModel {
+public:
+    ContinuumModel(std::string _name) : PhysicsBasedModel(_name) {}
+
+    std::string getClassName() const { return "Collection"; }
+};
+
 class Quantity : public Thing
 {
     std::string unit;

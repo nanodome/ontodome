@@ -24,9 +24,13 @@
 
 #include "gasphase.h"
 
-class GasPhaseCV : public GasPhase {
+class GasPhaseCV : public GasPhase
+{
 
 public:
+    GasPhaseCV() : GasPhase() {}
+
+    std::string getClassName() const { return "Gas Phase Continuum Model with constant volume assumption"; }
 
     /// Standard constructor.
     /// \param _p pressure [Pa]

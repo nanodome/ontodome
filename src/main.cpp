@@ -72,6 +72,7 @@ int main()
 
     GasPhaseCV gp(101325,300,species,cc);
     std::cout << gp.get_viscosity() << std::endl;
+    std::cout << gp.get_average_molecular_mass() << std::endl;
 
     return 0;
 }
