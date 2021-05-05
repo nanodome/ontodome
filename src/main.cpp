@@ -50,15 +50,7 @@ int main()
     VectorQuantity P_Sat({7.5341, 23399.},"saturation pressure coefficients","#");
     ScalarQuantity Visc(5e-4,"viscosity","Pa*s");
 
-    addRelation<hasProperty,Thing,Thing>(&si, &Mass);
-    addRelation<hasProperty,Thing,Thing>(&si, &T_Melt);
-    addRelation<hasProperty,Thing,Thing>(&si, &Sigma);
-    addRelation<hasProperty,Thing,Thing>(&si, &Eps);
-    addRelation<hasProperty,Thing,Thing>(&si, &Bulk_Dens_Liq);
-    addRelation<hasProperty,Thing,Thing>(&si, &Bulk_Dens_Sol);
-    addRelation<hasProperty,Thing,Thing>(&si, &S_Ten);
-    addRelation<hasProperty,Thing,Thing>(&si,&P_Sat);
-    addRelation<hasProperty,Thing,Thing>(&si,&Visc);
+    addRelations<hasProperty,Thing,Thing>(&si,{&Mass,&T_Melt,&Sigma,&Eps,&Bulk_Dens_Liq,&Bulk_Dens_Sol,&S_Ten,&P_Sat,&Visc});
 
     HeteronuclearMolecule fe("Fe");
 
@@ -73,15 +65,7 @@ int main()
     VectorQuantity P_Sat1({7.5341, 23399.},"saturation pressure coefficients","#");
     ScalarQuantity Visc1(5e-5,"viscosity","Pa*s");
 
-    addRelation<hasProperty,Thing,Thing>(&fe, &Mass1);
-    addRelation<hasProperty,Thing,Thing>(&fe, &T_Melt1);
-    addRelation<hasProperty,Thing,Thing>(&fe, &Sigma1);
-    addRelation<hasProperty,Thing,Thing>(&fe, &Eps1);
-    addRelation<hasProperty,Thing,Thing>(&fe, &Bulk_Dens_Liq1);
-    addRelation<hasProperty,Thing,Thing>(&fe, &Bulk_Dens_Sol1);
-    addRelation<hasProperty,Thing,Thing>(&fe, &S_Ten1);
-    addRelation<hasProperty,Thing,Thing>(&fe,&P_Sat1);
-    addRelation<hasProperty,Thing,Thing>(&fe,&Visc1);
+    addRelations<hasProperty,Thing,Thing>(&fe,{&Mass1,&T_Melt1,&Sigma1,&Eps1,&Bulk_Dens_Liq1,&Bulk_Dens_Sol1,&S_Ten1,&P_Sat1,&Visc1});
 
     std::vector<MolecularEntity*> species = {&si,&fe};
     std::valarray<double> cc = {0.5,0.5};
