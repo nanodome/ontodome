@@ -22,17 +22,43 @@
 #include "gasphase.h"
 #include <iostream>
 
+double GasPhase::get_viscosity() const {
+  double visc = 0;
+  for (auto i : species) {
+      double ci = c[hash.at(i->getName())];
+      visc += i->getScalarProperty("viscosity")*ci;
+  }
+  return visc;
+}
 
-double GasPhase::get_S(std::string formula) const {
+double GasPhase::get_p_sat(MolecularEntity* spec, double T) const {
 
-        double m_frac = c[hash.at(formula)];
+  std::vector<double> p_sat = spec->getVectorProperty("saturation pressure coefficients");
+
+  return 1.01e5 * pow(10.0,(p_sat[0]-(p_sat[1]/T))); ;
+}
+
+double GasPhase::get_n_sat(MolecularEntity* spec, double T) const {
+
+  return get_p_sat(spec,T)/(K_BOL*T);
+}
+
+double GasPhase::get_S(MolecularEntity* spec, double T) const {
+
+    double m_frac = c[hash.at(spec->getName())];
     double ns = m_frac*p/(K_BOL*T);
-    Species s = species[hash.at(formula)];
 
-        double s_sat = s.n_sat(T);
+    double s_sat = get_n_sat(spec,T);
+
     return ns/s_sat;
 }
 
+double GasPhase::get_s_ten(MolecularEntity* spec, double T) const {
+
+    std::vector<double> s_ten = spec->getVectorProperty("surface tension coefficients");
+
+    return s_ten[0]-s_ten[1]*(T-s_ten[2]);
+}
 
 double GasPhase::get_rho() const {
 
@@ -45,7 +71,7 @@ double GasPhase::get_average_molecular_mass() const {
     double m = 0.0;
 
     for(size_t i=0; i<species.size(); ++i)
-        m += species[i].get_mass() * c[i];
+        m += species[i]->getScalarProperty("mass") * c[i];
 
     return m;
 }
@@ -57,7 +83,7 @@ double GasPhase::get_gas_flux() const {
 
     for(size_t i=0; i<species.size(); ++i) {
 
-        double m_gas = species[i].get_mass();
+        double m_gas = species[i]->getScalarProperty("mass");
 
         // n_s * m_s * sqrt(3*K_BOL*T/m_s);
         flux += c[i]*p/(K_BOL*T) * m_gas * sqrt(3*K_BOL*T/m_gas);
@@ -70,7 +96,7 @@ double GasPhase::get_gas_flux() const {
 void GasPhase::print() {
 
     for(auto& sp : species)
-        std::cout << sp.get_formula() << '\t';
+        std::cout << sp->getName() << '\t';
     std::cout << std::endl;
 
     for(auto& cs : c)

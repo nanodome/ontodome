@@ -95,11 +95,11 @@ public:
           }
       }
       if (props.size() == 0) {
-          std::cout << "Property " << __name << " not found. Please, add it to the selected Species." << std::endl;
+          std::cout << "Property " << __name << " in " << this->getName() << " not found. Please, add it." << std::endl;
           abort();
       }
       else if (props.size() > 1) {
-          std::cout << "Multiple " << __name << " properties defined. Please, define only one per Species." << std::endl;
+          std::cout << "Multiple " << __name << " in " << this->getName() << " properties defined. Please, define only one per Species." << std::endl;
           abort();
       }
       else {
@@ -116,11 +116,11 @@ public:
           }
       }
       if (props.size() == 0) {
-          std::cout << "Property " << __name << " not found. Please, add it to the selected Species." << std::endl;
+          std::cout << "Property " << __name << " in " << this->getName() << " not found. Please, add it." << std::endl;
           abort();
       }
       else if (props.size() > 1) {
-          std::cout << "Multiple " << __name << " properties defined. Please, define only one per Species." << std::endl;
+          std::cout << "Multiple " << __name << " in " << this->getName() << " properties defined. Please, define only one per Species." << std::endl;
           abort();
       }
       else {

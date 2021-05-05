@@ -23,13 +23,11 @@
 #define GASPHASE_H
 
 #include "../base/thing.h"
+#include "../nanodome.h"
 
 #include <vector>
 #include <valarray>
 #include <map>
-
-#define ND_VISCOSITY 5e-5 // argon viscosity at 1000K
-
 
 /// Class implementing the gas phase.
 /// The gas phase is univocally determined knowing pressure, temperature and species molar fractions.
@@ -40,13 +38,12 @@ protected:
 
     double p; ///< Gas phase pressure [Pa]
     double T; ///< Gas phase temperature [K]
-
     double gamma; ///< expansion coefficient [1/s]
 
     std::map<std::string,std::size_t> hash; ///< Hash map for name-to-index resolution
 
     // IMPORTANT species and c indexes must be always syncronized
-    std::vector<MolecularQuantity*> species; ///< Species container
+    std::vector<MolecularEntity*> species; ///< Species container
     std::valarray<double> c; ///< Species molar fraction
 
 public:
@@ -54,20 +51,37 @@ public:
     /// Get gas phase pressure [Pa]
     double get_p() const { return p; }
 
-    /// Get single species number density [#/m3]
-    double get_n(std::string formula) const { return c[hash.at(formula)]*p/(K_BOL*T); }
+    /// Get gas phase temperature [K]
+    double get_T() const { return T; }
 
-	/// Get species molar fraction [%]
-	double get_c(std::string formula) const { return c[hash.at(formula)]; }
+    /// Get the expansion coefficient [1/s]
+    double get_gamma() const { return gamma; }
+
+    /// Get the expansion coefficient [1/s]
+    double get_viscosity() const;
+
+    /// Get single species number density [#/m3]
+    double get_n(std::string name) const { return c[hash.at(name)]*p/(K_BOL*T); }
+
+    /// Get species molar fraction [%]
+    double get_c(std::string name) const { return c[hash.at(name)]; }
 
     /// Get gas phase number density [#/m3]
     double get_n() const { return p/(K_BOL*T); }
 
     /// Get superaturation ratio
-    double get_S(std::string formula) const;
+    double get_S(MolecularEntity* spec, double T) const;
 
-    /// Get the expansion coefficient [1/s]
-    double get_gamma() const { return gamma; }
+    /// Saturation pressure [Pa]
+    /// \param T temperature [K]
+    double get_p_sat(MolecularEntity* spec, double T) const;
+
+    /// Saturation density [#/m3]
+    /// \param T temperature [K]
+    double get_n_sat(MolecularEntity* spec, double T) const;
+
+    /// Get species surface tension [N/m]
+    double get_s_ten(MolecularEntity* spec, double T) const;
 
     /// Get gas phase mass density [kg/m3]
     double get_rho() const;
@@ -76,13 +90,22 @@ public:
     double get_average_molecular_mass() const;
 
     /// Get species
-    Species get_species(std::string formula) const { return species[hash.at(formula)]; }
+    MolecularEntity* get_species(std::string name) const {
 
-    /// Get gas phase temperature [K]
-    double get_T() const { return T; }
+      MolecularEntity* spec;
+      for (auto i : species) {
+          if ( i->getName() == name) {
+              spec = i;
+          } else {
+              std::cout << "The species " << name << "is missing. Please add it." << std::endl;
+              abort();
+          }
+      }
+      return spec;
+    }
 
     /// Get gas phase mean free path [m]
-    double get_mfp() const { return (ND_VISCOSITY/p) * sqrt(M_PI*K_BOL*T/(2.*get_average_molecular_mass())); }
+    double get_mfp() const { return (get_viscosity()/p) * sqrt(M_PI*K_BOL*T/(2.*get_average_molecular_mass())); }
 
     /// Get gas flux used for Langevin dynamics [kg/m2 s]
     double get_gas_flux() const;

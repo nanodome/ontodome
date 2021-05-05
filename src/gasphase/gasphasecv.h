@@ -33,7 +33,7 @@ public:
     /// \param _T temperature [K]
     /// \param _species string vector with species names
     /// \param _c vector with molar fraction of each species ordered as _species
-    GasPhaseCV(double _p, double _T, std::vector<Species> _species, std::valarray<double> _c);
+    GasPhaseCV(double _p, double _T, std::vector<MolecularEntity*> _species, std::valarray<double> _c);
 
     /// Explicit constant pressure solver
     /// \param dt timestep [s]
