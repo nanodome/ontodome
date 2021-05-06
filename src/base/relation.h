@@ -4,9 +4,11 @@
 #include <string>
 #include <vector>
 
+#include "baseclass.h"
+
 class Thing;
 
-class Relation {
+class Relation : public BaseClass {
     Thing *o0;
     Thing *o1;
 public:
@@ -62,6 +64,14 @@ public:
   std::string getRelationName() const { return "hasProperty"; }
 };
 
+class hasScalarProperty : public hasProperty {
+public:
+  hasScalarProperty(Thing* _o0, Thing* _o1) : hasProperty(_o0,_o1) {}
+
+  std::string getRelationName() const { return "hasScalarProperty"; }
+};
+
+
 
 // Relation based functions
 template<class T, class T0, class T1>
@@ -70,6 +80,7 @@ Relation* addRelation(T0* o0, T1* o1);
 // Add multiple relation at once for lazy people
 template<class T, class T0, class T1>
 std::vector<Relation*> addRelations(T0* o0, std::vector<T1*> o1);
+
 #include "relation.cpp"
 
 #endif // RELATION_H

@@ -6,218 +6,190 @@
 #include <boost/variant/variant.hpp>
 #include <variant>
 
+#include "baseclass.h"
 #include "relation.h"
+#include "datatypes.h"
 
-class Thing {
-    // hardcoded annotations
-    std::string name;
+class Thing : BaseClass {
 
     // dynamic relations
     std::vector<Relation*> relations;
 public:
 
-    Thing(std::string _name) : name(_name) {}
-
     virtual std::string getClassName() const { return "Thing"; }
-
-    // annotations
-    std::string getName() const { return name; }
 
     // populate with relations
     void addRelation(Relation *t) { relations.push_back(t); }
+
+    template<class T, class T0>
+    void createRelationTo(T0* o1) {
+
+        T* r = new T(this,o1);
+
+        this->addRelation(r);
+        o1->addRelation(r);
+    }
 
     // find a relation of a specific type
     // TODO: optimize search using multimap<std::string,Relation*>,
     //       getClassName() function for the key and a static_cast<T*>
     template<class T>
     std::vector<T*> getRelation();
+
+    template<class T>
+    std::vector<T*> getRelatedObject();
 };
 
-class Model : public Thing {
-public:
-    Model(std::string _name) : Thing(_name) {}
-
-    std::string getClassName() const { return "Model"; }
-};
-
-class PhysicsBasedModel : public Model {
-public:
-    PhysicsBasedModel(std::string _name) : Model(_name) {}
-
-    std::string getClassName() const { return "Collection"; }
-};
-
-class ContinuumModel : public PhysicsBasedModel {
-public:
-    ContinuumModel(std::string _name) : PhysicsBasedModel(_name) {}
-
-    std::string getClassName() const { return "Collection"; }
-};
-
-class Quantity : public Thing
-{
-    std::string unit;
-public:
-    Quantity(std::string _name, std::string _unit) : Thing(_name), unit(_unit) {}
-
-    std::string getClassName() const { return "Quantity"; }
-
-    std::string getUnit() const { return unit; }
-};
-
-class ScalarQuantity : public Quantity
-{
-    double value;
-public:
-    ScalarQuantity(double _value, std::string _name, std::string _unit) : Quantity(_name, _unit), value(_value) {}
-
-    std::string getClassName() const { return "ScalarQuantity"; }
-
-    double getValue() const { return value; }
-};
-
-class VectorQuantity : public Quantity
-{
-    std::vector<double> value;
-public:
-    VectorQuantity(const std::vector<double> _value, std::string _name, std::string _unit) : Quantity(_name, _unit), value(_value) {}
-
-    std::string getClassName() const { return "VectorQuantity"; }
-
-    std::vector<double> getValue() const { return value; }
-};
 
 class Item : public Thing {
 public:
-    Item(std::string _name) : Thing(_name) {}
-
     std::string getClassName() const { return "Item"; }
 };
 
 class Collection : public Thing {
 public:
-    Collection(std::string _name) : Thing(_name) {}
-
     std::string getClassName() const { return "Collection"; }
 };
 
 class Physical : public Thing {
 public:
-    Physical(std::string _name) : Thing(_name) {}
-
     std::string getClassName() const { return "Physical"; }
-
-    double getScalarProperty(std::string __name) {
-      auto rel = this->getRelation<hasProperty>();
-      std::vector<ScalarQuantity*> props;
-      for (auto i : rel) {
-          if (i->getRange()->getName() == __name) {
-            props.push_back(dynamic_cast<ScalarQuantity*>(i->getRange()));
-          }
-      }
-      if (props.size() == 0) {
-          std::cout << "Property " << __name << " in " << this->getName() << " not found. Please, add it." << std::endl;
-          abort();
-      }
-      else if (props.size() > 1) {
-          std::cout << "Multiple " << __name << " in " << this->getName() << " properties defined. Please, define only one per Species." << std::endl;
-          abort();
-      }
-      else {
-          return props.at(props.size()-1)->getValue();
-      }
-    }
-
-    std::vector<double> getVectorProperty(std::string __name) {
-      auto rel = this->getRelation<hasProperty>();
-      std::vector<VectorQuantity*> props;
-      for (auto i : rel) {
-          if (i->getRange()->getName() == __name) {
-            props.push_back(dynamic_cast<VectorQuantity*>(i->getRange()));
-          }
-      }
-      if (props.size() == 0) {
-          std::cout << "Property " << __name << " in " << this->getName() << " not found. Please, add it." << std::endl;
-          abort();
-      }
-      else if (props.size() > 1) {
-          std::cout << "Multiple " << __name << " in " << this->getName() << " properties defined. Please, define only one per Species." << std::endl;
-          abort();
-      }
-      else {
-          return props.at(props.size()-1)->getValue();
-      }
-    }
 };
 
 class Quantum : public Item {
 public:
-    Quantum(std::string _name) : Item(_name) {}
-
     std::string getClassName() const { return "Quantum"; }
 };
 
 class Void : public Thing {
 public:
-    Void(std::string _name) : Thing(_name) {}
-
     std::string getClassName() const { return "Void"; }
 };
 
 class Elementary : public Physical {
 public:
-    Elementary(std::string _name) : Physical(_name) {}
-
     std::string getClassName() const { return "Elementary"; }
 };
 
 class Perspective : public Physical {
 public:
-    Perspective(std::string _name) : Physical(_name) {}
-
     std::string getClassName() const { return "Perspective"; }
 };
 
-class Matter : public Physical {
+class Symbolic : public Perspective {
 public:
-    Matter(std::string _name) : Physical(_name) {}
+    std::string getClassName() const { return "Symbolic"; }
+};
 
-    std::string getClassName() const { return "Perspective"; }
+class String : public Symbolic, public DataType<std::string>
+{
+public:
+    std::string getClassName() const { return "String"; }
+};
+
+class Vector : public Symbolic, public DataType<std::vector<double>>
+{
+public:
+    std::string getClassName() const { return "Vector"; }
+};
+
+class Unit : public String
+{
+public:
+    Unit(std::string _unit) { data = _unit; }
+
+    std::string getClassName() const { return "Unit"; }
+};
+
+class Quantity : public Symbolic
+{
+public:
+    std::string getClassName() const { return "Quantity"; }
+};
+
+class Scalar : public Symbolic, public DataType<double>
+{
+public:
+    Scalar(double s) {data = s;}
+    std::string getClassName() const { return "Quantity"; }
+};
+
+
+class ScalarQuantity : public Quantity
+{
+public:
+    ScalarQuantity(Scalar* _s, Unit* _u)
+    {
+        createRelationTo<hasPart,Thing>(_u);
+        createRelationTo<hasPart,Thing>(_s);
+    }
+
+    std::string getClassName() const { return "ScalarQuantity"; }
+};
+
+class Pressure : public ScalarQuantity
+{
+public:
+    Pressure(Scalar* _s, Unit* _u) : ScalarQuantity(_s,_u) {}
+
+    std::string getClassName() const { return "Pressure"; }
+};
+
+class VectorQuantity : public Quantity
+{
+public:
+    VectorQuantity(Vector* _s, Unit* _u)
+    {
+        createRelationTo<hasPart,Thing>(_u);
+        createRelationTo<hasPart,Thing>(_s);
+    }
+
+    std::string getClassName() const { return "VectorQuantity"; }
+};
+
+class Model : public Perspective {
+public:
+    std::string getClassName() const { return "Model"; }
+};
+
+class PhysicsBasedModel : public Model {
+public:
+    std::string getClassName() const { return "PhysicsBasedModel"; }
+};
+
+class ContinuumModel : public PhysicsBasedModel {
+public:
+    std::string getClassName() const { return "ContinuumModel"; }
+};
+
+class Matter : public Perspective {
+public:
+    std::string getClassName() const { return "Matter"; }
 };
 
 class MolecularEntity : public Matter {
 public:
-    MolecularEntity(std::string _name) : Matter(_name) {}
-
-    std::string getClassName() const { return "Perspective"; }
+    std::string getClassName() const { return "MolecularEntity"; }
 };
 
 class Atom : public MolecularEntity {
 public:
-    Atom(std::string _name) : MolecularEntity(_name) {}
-
-    std::string getClassName() const { return "Perspective"; }
+    std::string getClassName() const { return "Atom"; }
 };
 
 class PolyatomicEntity : public MolecularEntity {
 public:
-    PolyatomicEntity(std::string _name) : MolecularEntity(_name) {}
-
-    std::string getClassName() const { return "Perspective"; }
+    std::string getClassName() const { return "PolyatomicEntity"; }
 };
 
 class HeteronuclearMolecule : public PolyatomicEntity {
 public:
-    HeteronuclearMolecule(std::string _name) : PolyatomicEntity(_name) {}
-
-    std::string getClassName() const { return "Perspective"; }
+    std::string getClassName() const { return "HeteronuclearMolecule"; }
 };
 
 class HomonuclearMolecule : public PolyatomicEntity {
 public:
-    HomonuclearMolecule(std::string _name) : PolyatomicEntity(_name) {}
-
-    std::string getClassName() const { return "Perspective"; }
+    std::string getClassName() const { return "HomonuclearMolecule"; }
 };
 
 #include "thing.cpp"

@@ -3,22 +3,27 @@
 template<class T>
 std::vector<T*> Thing::getRelation()
 {
-  std::vector<T*> rels;
-  std::string rel_type;
+   std::vector<T*> rels;
 
+   for(auto i: relations) {
+      if(T* r0 = dynamic_cast<T*>(i)) {
+        rels.push_back(r0);
+      }
+   }
 
-       for(auto i: relations) {
-         if(T* r0 = dynamic_cast<T*>(i)) {
-             rels.push_back(r0);
-         }
-       }
-       if (rels.empty()) {
-         T* r0 = dynamic_cast<T*>(r0);
-         std::string str = typeid(r0).name();
-         std::cout << "No " << str.substr(3,str.size()) << " relations found" << std::endl;
-         abort();
-       }
-       else {
-         return rels;
-       }
+   return rels;
+}
+
+template<class T>
+std::vector<T*> Thing::getRelatedObject()
+{
+   std::vector<T*> objs;
+
+   for(auto i: relations) {
+      if(T* r0 = dynamic_cast<T*>(i->getRange())) {
+        objs.push_back(r0);
+      }
+   }
+
+   return objs;
 }
