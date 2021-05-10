@@ -5,13 +5,14 @@
 #include "models/gasmodels/gasmodel.h"
 #include "models/gasmodels/gasmodelcv.h"
 #include "models/nanomodels/nucleation/cnt.h"
+#include "models/nanomodels/moments/momentmodelpratsinis.h"
 
 int main()
 {
     GasMixture gp;
     Pressure p(new Scalar(101325.), new Unit("Pa"));
-    Temperature T(new Scalar(300.), new Unit("K"));
-    PressureTimeDerivative dpdt(new Scalar(-1e+7), new Unit("Pa/s"));
+    Temperature T(new Scalar(500.), new Unit("K"));
+    PressureTimeDerivative dpdt(new Scalar(0), new Unit("Pa/s"));
     TemperatureTimeDerivative dTdt(new Scalar(-1e+7), new Unit("K/s"));
 
     HomonuclearMolecule Si;
@@ -19,14 +20,18 @@ int main()
     IUPAC si("Si");
     Mass masi(new Scalar(28.085*AMU), new Unit("kg"));
     Viscosity musi(new Scalar(7e-5), new Unit("Pa s"));
-    BulkDensityLiquid bdsi(new Scalar(2570.), new Unit("Pa s"));
+    BulkDensityLiquid bdlsi(new Scalar(2570.), new Unit("kg/m3"));
+    BulkDensitySolid bdssi(new Scalar(2329.), new Unit("kg/m3"));
+    MeltingPoint mpsi(new Scalar(1687.), new Unit("K"));
     SaturationPressure psatsi(new Vector({7.5341,23399.}),new Unit("Pa"));
     SurfaceTension stensi(new Vector({0.732,0.000086,1685.}),new Unit("N/m"));
     Si.createRelationTo<hasProperty,MolarFraction>(&msi);
     Si.createRelationTo<hasProperty,IUPAC>(&si);
     Si.createRelationTo<hasProperty,Mass>(&masi);
     Si.createRelationTo<hasProperty,Viscosity>(&musi);
-    Si.createRelationTo<hasProperty,BulkDensityLiquid>(&bdsi);
+    Si.createRelationTo<hasProperty,BulkDensityLiquid>(&bdlsi);
+    Si.createRelationTo<hasProperty,BulkDensitySolid>(&bdssi);
+    Si.createRelationTo<hasProperty,MeltingPoint>(&mpsi);
     Si.createRelationTo<hasProperty,SaturationPressure>(&psatsi);
     Si.createRelationTo<hasProperty,SurfaceTension>(&stensi);
 
@@ -103,6 +108,10 @@ int main()
     std::cout << "Si stable cluster size: " << cnt.stable_cluster_size(&Si,&gm,Ti) << std::endl;
     std::cout << "Si stable cluster diameter: " << cnt.stable_cluster_diameter(&Si,&gm,Ti) << std::endl;
     std::cout << "Si condensation rate: " << cnt.condensation_rate(&Si,&gm,Ti) << std::endl;
+
+    MomentModelPratsinis mm;
+    double g_cons = mm.timestep(1e-6, &gm, &cnt, &Si);
+    std::cout << "Moment model Si computed consumption: " << g_cons << std::endl;
 
 
     double te = 0;

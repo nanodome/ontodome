@@ -185,7 +185,23 @@ class BulkDensityLiquid : public ScalarQuantity
 public:
     BulkDensityLiquid(Scalar* _s, Unit* _u) : ScalarQuantity(_s,_u) {}
 
-    std::string getClassName() const { return "Mass"; }
+    std::string getClassName() const { return "BulkDensityLiquid"; }
+};
+
+class BulkDensitySolid : public ScalarQuantity
+{
+public:
+    BulkDensitySolid(Scalar* _s, Unit* _u) : ScalarQuantity(_s,_u) {}
+
+    std::string getClassName() const { return "BulkDensitySolid"; }
+};
+
+class MeltingPoint : public ScalarQuantity
+{
+public:
+    MeltingPoint(Scalar* _s, Unit* _u) : ScalarQuantity(_s,_u) {}
+
+    std::string getClassName() const { return "MeltingPoint"; }
 };
 
 class Viscosity : public ScalarQuantity

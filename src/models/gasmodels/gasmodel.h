@@ -158,6 +158,9 @@ public:
     /// Get the expansion coefficient [1/s]
     double get_gamma() const { return gamma; }
 
+    /// Get the temperature [K]
+    double get_T() const { return T; }
+
     /// Get gas phase molecules average viscosity [Pa s]
     double get_average_viscosity(GasMixture* gm) const {
       double visc = 0;

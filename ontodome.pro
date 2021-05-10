@@ -13,5 +13,6 @@ HEADERS += \
 		src/base/thing.h \
 		src/models/gasmodels/gasmodel.h \
 		src/models/gasmodels/gasmodelcv.h \
+		src/models/nanomodels/moments/momentmodelpratsinis.h \
 		src/models/nanomodels/nucleation/cnt.h \
 		src/ontodome.h
