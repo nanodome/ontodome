@@ -180,6 +180,14 @@ public:
     std::string getClassName() const { return "Mass"; }
 };
 
+class BulkDensityLiquid : public ScalarQuantity
+{
+public:
+    BulkDensityLiquid(Scalar* _s, Unit* _u) : ScalarQuantity(_s,_u) {}
+
+    std::string getClassName() const { return "Mass"; }
+};
+
 class Viscosity : public ScalarQuantity
 {
 public:
@@ -206,7 +214,7 @@ public:
     SurfaceTension(Vector* _s, Unit* _u) : VectorQuantity(_s,_u) {}
 
     double get_s_ten(double T) {
-      return _s[0] - _s[2]*(T - _s[3]);
+      return (_s[0] - (_s[1]*(T - _s[2])));
     }
 
     std::string getClassName() const { return "SurfaceTension"; }
@@ -240,6 +248,13 @@ public:
         modeled.push_back(i->getRange()->getClassName());
       return modeled;
     }
+
+    auto requiredModels() {
+      std::vector<std::string> modeled;
+      for (auto i : this->getRelation<requiresModelFor>())
+        modeled.push_back(i->getRange()->getClassName());
+      return modeled;
+    }
 };
 
 class PhysicsBasedModel : public Model {
@@ -250,6 +265,11 @@ public:
 class ContinuumModel : public PhysicsBasedModel {
 public:
     std::string getClassName() const { return "ContinuumModel"; }
+};
+
+class MesoscopicModel : public PhysicsBasedModel {
+public:
+    std::string getClassName() const { return "MesoscopicModel"; }
 };
 
 class Matter : public Perspective {

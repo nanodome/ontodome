@@ -28,6 +28,11 @@ public:
     isModelFor(Thing* _o0, Thing* _o1) : Relation(_o0,_o1) {}
 };
 
+class requiresModelFor : public Relation {
+public:
+    requiresModelFor(Thing* _o0, Thing* _o1) : Relation(_o0,_o1) {}
+};
+
 class hasOverlap : public Relation {
 public:
     hasOverlap(Thing* _o0, Thing* _o1) : Relation(_o0,_o1) {}

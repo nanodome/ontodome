@@ -11,6 +11,7 @@ SOURCES += \
 HEADERS += \
 		src/base/relation.h \
 		src/base/thing.h \
-		src/models/gasmodel.h \
-		src/models/gasmodelcv.h \
+		src/models/gasmodels/gasmodel.h \
+		src/models/gasmodels/gasmodelcv.h \
+		src/models/nanomodels/nucleation/cnt.h \
 		src/ontodome.h

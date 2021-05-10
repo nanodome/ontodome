@@ -2,8 +2,9 @@
 #include <vector>
 
 #include "base/thing.h"
-#include "models/gasmodel.h"
-#include "models/gasmodelcv.h"
+#include "models/gasmodels/gasmodel.h"
+#include "models/gasmodels/gasmodelcv.h"
+#include "models/nanomodels/nucleation/cnt.h"
 
 int main()
 {
@@ -18,14 +19,30 @@ int main()
     IUPAC si("Si");
     Mass masi(new Scalar(28.085*AMU), new Unit("kg"));
     Viscosity musi(new Scalar(7e-5), new Unit("Pa s"));
-    SaturationPressure psatsi(new Vector({7.5341,23399.}),new Unit("#"));
-    SurfaceTension stensi(new Vector({0.732,0.000086,1685.}),new Unit("#"));
+    BulkDensityLiquid bdsi(new Scalar(2570.), new Unit("Pa s"));
+    SaturationPressure psatsi(new Vector({7.5341,23399.}),new Unit("Pa"));
+    SurfaceTension stensi(new Vector({0.732,0.000086,1685.}),new Unit("N/m"));
     Si.createRelationTo<hasProperty,MolarFraction>(&msi);
     Si.createRelationTo<hasProperty,IUPAC>(&si);
     Si.createRelationTo<hasProperty,Mass>(&masi);
     Si.createRelationTo<hasProperty,Viscosity>(&musi);
+    Si.createRelationTo<hasProperty,BulkDensityLiquid>(&bdsi);
     Si.createRelationTo<hasProperty,SaturationPressure>(&psatsi);
     Si.createRelationTo<hasProperty,SurfaceTension>(&stensi);
+
+    HeteronuclearMolecule CH4;
+    MolarFraction mch4(new Scalar(0.), new Unit("#"));
+    IUPAC ch4("CH4");
+    Mass mach4(new Scalar(4.002602*AMU), new Unit("kg"));
+    Viscosity much4(new Scalar(5e-5), new Unit("Pa s"));
+    SaturationPressure psatch4(new Vector({0,0}),new Unit("#"));
+    SurfaceTension stench4(new Vector({0.,0.,0.}),new Unit("#"));
+    CH4.createRelationTo<hasProperty,MolarFraction>(&mch4);
+    CH4.createRelationTo<hasProperPart,IUPAC>(&ch4);
+    CH4.createRelationTo<hasProperty,Mass>(&mach4);
+    CH4.createRelationTo<hasProperty,Viscosity>(&much4);
+    CH4.createRelationTo<hasProperty,SaturationPressure>(&psatch4);
+    CH4.createRelationTo<hasProperty,SurfaceTension>(&stench4);
 
     HomonuclearMolecule He;
     MolarFraction mhe(new Scalar(0.9), new Unit("#"));
@@ -47,31 +64,45 @@ int main()
     gp.createRelationTo<hasProperty,TemperatureTimeDerivative>(&dTdt);
     gp.createRelationTo<hasPart,HomonuclearMolecule>(&Si);
     gp.createRelationTo<hasPart,HomonuclearMolecule>(&He);
+    gp.createRelationTo<hasPart,HeteronuclearMolecule>(&CH4);
 
+//    // test to verify if it is possible to store different entities with a vector of the class who is their ancestor
+//    auto test = gp.getRelatedObject<PolyatomicEntity>();
+//    for (std::size_t i = 0; i < test.size(); ++i) {
+//        std::cout << test[i]->getClassName() << std::endl;
+//        std::cout << test[i]->getRelatedObject<IUPAC>()[0]->data << std::endl;
+//    }
 //    Physical obj;
 
 //    obj.createRelationTo<hasProperty,Pressure>(&p);
 //    std::cout << obj.getRelatedObject<Pressure>()[0]->getRelatedObject<Scalar>()[0]->data;
 //    std::cout << " " << obj.getRelatedObject<Pressure>()[0]->getRelatedObject<Unit>()[0]->data << std::endl;
 
-//    GasModel gm;
-    GasModelCV gm; //NOTE non rispetta la somma delle frazioni molari sempre pari a 1!!!!!!!
+    GasModel gm;
+//    GasModelCV gm; //NOTE non rispetta la somma delle frazioni molari sempre pari a 1!!!!!!!
     auto models = gm.isModel();
-    gm.run(&gp,1e-6,{-1e+30,0});
-    auto n = gm.get_n();
+    gm.run(&gp,1e-6,{-1e+30,0,0});
+//    auto n = gm.get_n();
 
-    std::cout << gp.getRelatedObject<Temperature>()[0]->getRelatedObject<Scalar>()[0]->data << std::endl;
-    std::cout << gp.getRelatedObject<Pressure>()[0]->getRelatedObject<Scalar>()[0]->data << std::endl;
-    std::cout << Si.getRelatedObject<MolarFraction>()[0]->getRelatedObject<Scalar>()[0]->data << std::endl;
-    std::cout << He.getRelatedObject<MolarFraction>()[0]->getRelatedObject<Scalar>()[0]->data << std::endl;
-    std::cout << gm.get_average_molecular_mass(&gp) << std::endl;
-    std::cout << gm.get_S<HomonuclearMolecule>(&Si,2100.) << std::endl;
-    std::cout << gm.get_n_sat<HomonuclearMolecule>(&Si,2100.) << std::endl;
-    std::cout << gm.get_density(&gp) << std::endl;
-    std::cout << gm.get_average_molecular_mass(&gp) << std::endl;
-    std::cout << gm.get_mfp(&gp) << std::endl;
-    std::cout << gm.get_gas_flux(&gp) << std::endl;
-    std::cout << gm.get_average_viscosity(&gp) << std::endl;
+    std::cout << "GP Temperature: " << gp.getRelatedObject<Temperature>()[0]->getRelatedObject<Scalar>()[0]->data << std::endl;
+    std::cout << "GP Pressure: " << gp.getRelatedObject<Pressure>()[0]->getRelatedObject<Scalar>()[0]->data << std::endl;
+    std::cout << "Si Molar Fraction: " << Si.getRelatedObject<MolarFraction>()[0]->getRelatedObject<Scalar>()[0]->data << std::endl;
+    std::cout << "He Molar Fraction: " << He.getRelatedObject<MolarFraction>()[0]->getRelatedObject<Scalar>()[0]->data << std::endl;
+    std::cout << "GP Average Mass: " << gm.get_average_molecular_mass(&gp) << std::endl;
+    std::cout << "Si S: " << gm.get_S<HomonuclearMolecule>(&Si,2100.) << std::endl;
+    std::cout << "Si n_sat: " << gm.get_n_sat<HomonuclearMolecule>(&Si,2100.) << std::endl;
+    std::cout <<  "GP Average Density: " << gm.get_density(&gp) << std::endl;
+    std::cout << "GP Mean Free Path: " << gm.get_mfp(&gp) << std::endl;
+    std::cout << "GP Gas Flux: " << gm.get_gas_flux(&gp) << std::endl;
+    std::cout << "GP Average Viscosity: " << gm.get_average_viscosity(&gp) << std::endl;
+    std::cout << "Si s_ten: " << Si.getRelatedObject<SurfaceTension>()[0]->get_s_ten(2000) << std::endl;
+
+    ClassicalNucleationTheory cnt;
+    std::cout << "Si nucleation rate: " << cnt.nucleation_rate(&Si,&gm,2000.) << std::endl;
+    std::cout << "Si stable cluster size: " << cnt.stable_cluster_size(&Si,&gm,2000.) << std::endl;
+    std::cout << "Si stable cluster diameter: " << cnt.stable_cluster_diameter(&Si,&gm,2000.) << std::endl;
+    std::cout << "Si condensation rate: " << cnt.condensation_rate(&Si,&gm,2000.) << std::endl;
+
 
     double te = 0;
 }
