@@ -19,8 +19,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef NANODOME
-#define NANODOME
+#ifndef ONTODOME
+#define ONTODOME
 
 #include <list>
 #include <vector>
@@ -89,6 +89,4 @@ typedef struct raw_c_data {
 	double dt = -1;
 }raw_configuration_data;
 
-#endif // NANODOME
-
-
+#endif // ONTODOME

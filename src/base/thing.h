@@ -3,14 +3,12 @@
 
 #include <iostream>
 #include <vector>
-#include <boost/variant/variant.hpp>
-#include <variant>
 
 #include "baseclass.h"
 #include "relation.h"
 #include "datatypes.h"
 
-class Thing : BaseClass {
+class Thing : public BaseClass {
 
     // dynamic relations
     std::vector<Relation*> relations;
@@ -81,7 +79,7 @@ public:
     std::string getClassName() const { return "Symbolic"; }
 };
 
-class String : public Symbolic, public DataType<std::string>
+class String : public Symbolic
 {
 public:
     std::string getClassName() const { return "String"; }
@@ -90,14 +88,22 @@ public:
 class Vector : public Symbolic, public DataType<std::vector<double>>
 {
 public:
+    Vector(std::vector<double> s) {data = s;}
     std::string getClassName() const { return "Vector"; }
 };
 
-class Unit : public String
+class IUPAC : public String, public DataType<std::string>
 {
 public:
-    Unit(std::string _unit) { data = _unit; }
+    IUPAC(std::string _iupac) { data = _iupac; }
 
+    std::string getClassName() const { return "IUPAC Name"; }
+};
+
+class Unit : public Symbolic, public DataType<std::string>
+{
+public:
+    Unit(std::string s) {data = s;}
     std::string getClassName() const { return "Unit"; }
 };
 
@@ -111,9 +117,8 @@ class Scalar : public Symbolic, public DataType<double>
 {
 public:
     Scalar(double s) {data = s;}
-    std::string getClassName() const { return "Quantity"; }
+    std::string getClassName() const { return "Scalar"; }
 };
-
 
 class ScalarQuantity : public Quantity
 {
@@ -135,6 +140,54 @@ public:
     std::string getClassName() const { return "Pressure"; }
 };
 
+class PressureTimeDerivative : public ScalarQuantity
+{
+public:
+    PressureTimeDerivative(Scalar* _s, Unit* _u) : ScalarQuantity(_s,_u) {}
+
+    std::string getClassName() const { return "PressureTimeDerivative"; }
+};
+
+class Temperature : public ScalarQuantity
+{
+public:
+    Temperature(Scalar* _s, Unit* _u) : ScalarQuantity(_s,_u) {}
+
+    std::string getClassName() const { return "Temperature"; }
+};
+
+class TemperatureTimeDerivative : public ScalarQuantity
+{
+public:
+    TemperatureTimeDerivative(Scalar* _s, Unit* _u) : ScalarQuantity(_s,_u) {}
+
+    std::string getClassName() const { return "TemperatureTimeDerivative"; }
+};
+
+class MolarFraction : public ScalarQuantity
+{
+public:
+    MolarFraction(Scalar* _s, Unit* _u) : ScalarQuantity(_s,_u) {}
+
+    std::string getClassName() const { return "MolarFraction"; }
+};
+
+class Mass : public ScalarQuantity
+{
+public:
+    Mass(Scalar* _s, Unit* _u) : ScalarQuantity(_s,_u) {}
+
+    std::string getClassName() const { return "Mass"; }
+};
+
+class Viscosity : public ScalarQuantity
+{
+public:
+    Viscosity(Scalar* _s, Unit* _u) : ScalarQuantity(_s,_u) {}
+
+    std::string getClassName() const { return "Viscosity"; }
+};
+
 class VectorQuantity : public Quantity
 {
 public:
@@ -147,9 +200,46 @@ public:
     std::string getClassName() const { return "VectorQuantity"; }
 };
 
+class SurfaceTension : public VectorQuantity
+{
+public:
+    SurfaceTension(Vector* _s, Unit* _u) : VectorQuantity(_s,_u) {}
+
+    double get_s_ten(double T) {
+      return _s[0] - _s[2]*(T - _s[3]);
+    }
+
+    std::string getClassName() const { return "SurfaceTension"; }
+
+private:
+  std::vector<double> _s = this->getRelatedObject<Vector>()[0]->getRelatedObject<Vector>()[0]->data;
+};
+
+class SaturationPressure : public VectorQuantity
+{
+public:
+    SaturationPressure(Vector* _s, Unit* _u) : VectorQuantity(_s,_u) {}
+
+    double get_p_sat(double T) {
+      return pow(10.0,(_s[0]-(_s[1]/T)));;
+    }
+
+    std::string getClassName() const { return "SurfaceTension"; }
+
+private:
+  std::vector<double> _s = this->getRelatedObject<Vector>()[0]->getRelatedObject<Vector>()[0]->data;
+};
+
 class Model : public Perspective {
 public:
     std::string getClassName() const { return "Model"; }
+
+    auto isModel() {
+      std::vector<std::string> modeled;
+      for (auto i : this->getRelation<isModelFor>())
+        modeled.push_back(i->getRange()->getClassName());
+      return modeled;
+    }
 };
 
 class PhysicsBasedModel : public Model {
@@ -165,6 +255,26 @@ public:
 class Matter : public Perspective {
 public:
     std::string getClassName() const { return "Matter"; }
+};
+
+class Continuum : public Matter {
+public:
+    std::string getClassName() const { return "Continuum"; }
+};
+
+class Fluid : public Continuum {
+public:
+    std::string getClassName() const { return "Fluid"; }
+};
+
+class Gas : public Fluid {
+public:
+    std::string getClassName() const { return "Gas"; }
+};
+
+class GasMixture : public Gas {
+public:
+    std::string getClassName() const { return "GasMixture"; }
 };
 
 class MolecularEntity : public Matter {
