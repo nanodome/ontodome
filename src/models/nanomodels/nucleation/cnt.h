@@ -57,14 +57,14 @@ public:
       //unsigned int fp_control_state = _controlfp(_EM_INEXACT, _MCW_EM);
 
       // Get the supersaturation ration from GasPhase
-      double S = gasmodel-> template get_S<TT>(species,T);
+      double S = gasmodel-> template get_S(species,T);
 
       // check if species is saturated, if not nucleation rate is left to zero
       if(S>1.0) {
 
           // normalized surface tension
           double theta = species-> template getRelatedObject<SurfaceTension>()[0]-> template get_s_ten(T)*get_m_surface(species)/(K_BOL*T);
-          double ns_sat = gasmodel-> template get_n_sat<TT>(species,T);
+          double ns_sat = gasmodel-> template get_n_sat(species,T);
 
           double A = (S*ns_sat*ns_sat);
           double B = get_m_volume(species);
@@ -92,7 +92,7 @@ public:
       double c_size = 1.0;
 
       // Get the supersaturation ration from GasPhase
-      double S = gasmodel-> template get_S<TT>(species,T);
+      double S = gasmodel-> template get_S(species,T);
 
       // check if species is saturated; if not, the stable size has no sense and is set to one
       // meaning that the smallest cluster is a single monomer (no-cluster)
@@ -111,7 +111,7 @@ public:
     template <class TT, class GasM> double stable_cluster_diameter(TT* species, GasM* gasmodel, double T) const {
 
       // Get the supersaturation ration from GasPhase
-      double S = gasmodel-> template get_S<TT>(species,T);
+      double S = gasmodel-> template get_S(species,T);
 
       return 2*pow( (3./4.) * get_m_volume(species) * stable_cluster_size(species,gasmodel,S) / M_PI, 1./3.);
     }
@@ -122,7 +122,7 @@ public:
     template <class TT, class GasM> double condensation_rate(TT* species, GasM* gasmodel, double T) const{
 
       // Get the supersaturation ration from GasPhase
-      double S = gasmodel-> template get_S<TT>(species,T);
+      double S = gasmodel-> template get_S(species,T);
 
       return species-> template getRelatedObject<SaturationPressure>()[0]->get_p_sat(T)*(S-1.0) / sqrt(2*M_PI*species-> template getRelatedObject<Mass>()[0]->template getRelatedObject<Scalar>()[0]->data*K_BOL*T);
     }

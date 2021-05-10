@@ -89,19 +89,20 @@ int main()
     std::cout << "Si Molar Fraction: " << Si.getRelatedObject<MolarFraction>()[0]->getRelatedObject<Scalar>()[0]->data << std::endl;
     std::cout << "He Molar Fraction: " << He.getRelatedObject<MolarFraction>()[0]->getRelatedObject<Scalar>()[0]->data << std::endl;
     std::cout << "GP Average Mass: " << gm.get_average_molecular_mass(&gp) << std::endl;
-    std::cout << "Si S: " << gm.get_S<HomonuclearMolecule>(&Si,2100.) << std::endl;
-    std::cout << "Si n_sat: " << gm.get_n_sat<HomonuclearMolecule>(&Si,2100.) << std::endl;
+    std::cout << "Si S: " << gm.get_S(&Si,2100.) << std::endl;
+    std::cout << "Si n_sat: " << gm.get_n_sat(&Si,2100.) << std::endl;
     std::cout <<  "GP Average Density: " << gm.get_density(&gp) << std::endl;
     std::cout << "GP Mean Free Path: " << gm.get_mfp(&gp) << std::endl;
     std::cout << "GP Gas Flux: " << gm.get_gas_flux(&gp) << std::endl;
     std::cout << "GP Average Viscosity: " << gm.get_average_viscosity(&gp) << std::endl;
     std::cout << "Si s_ten: " << Si.getRelatedObject<SurfaceTension>()[0]->get_s_ten(2000) << std::endl;
 
+    double Ti = gp.getRelatedObject<Temperature>()[0]->getRelatedObject<Scalar>()[0]->data;
     ClassicalNucleationTheory cnt;
-    std::cout << "Si nucleation rate: " << cnt.nucleation_rate(&Si,&gm,2000.) << std::endl;
-    std::cout << "Si stable cluster size: " << cnt.stable_cluster_size(&Si,&gm,2000.) << std::endl;
-    std::cout << "Si stable cluster diameter: " << cnt.stable_cluster_diameter(&Si,&gm,2000.) << std::endl;
-    std::cout << "Si condensation rate: " << cnt.condensation_rate(&Si,&gm,2000.) << std::endl;
+    std::cout << "Si nucleation rate: " << cnt.nucleation_rate(&Si,&gm,Ti) << std::endl;
+    std::cout << "Si stable cluster size: " << cnt.stable_cluster_size(&Si,&gm,Ti) << std::endl;
+    std::cout << "Si stable cluster diameter: " << cnt.stable_cluster_diameter(&Si,&gm,Ti) << std::endl;
+    std::cout << "Si condensation rate: " << cnt.condensation_rate(&Si,&gm,Ti) << std::endl;
 
 
     double te = 0;
