@@ -32,28 +32,36 @@
 /// Implementation of the Pratsinis 1988 model.
 /// Simultaneous Nucleation, Condensation and Coagulation in Aerosol Reactors,
 /// S.E. Pratsinis, Journal of Colloid and Interface Science, Vol. 124, No. 2, August 1988
-class MomentModelPratsinis :public MesoscopicModel {
+class MomentModelPratsinis : public MesoscopicModel {
 
 protected:
     double M0; ///< Nanoparticles number density [#/m3]
     double M1; ///< Nanoparticles total volume [m3/m3]
     double M2; ///< Nanoparticles ... [m6/m3]
 
+    /// attempt to reduce computational time
+    double s_mass;
+    double s_m_vol;
+    double s_bulk_density_liq;
+    double s_bulk_density_sol;
+    double s_T_melt;
+
     /// TEST
     double M1_cond;
-
 
 public:
     /// Standard constructor.
     MomentModelPratsinis() : MesoscopicModel() {
       // List of compatible entities
-      createRelationTo<isModelFor,Thing>(new PolyatomicEntity);
+      createRelationTo<isModelFor,Thing>(new HomonuclearMolecule);
+      createRelationTo<isModelFor,Thing>(new HeteronuclearMolecule);
 
       // List of required models
       createRelationTo<requiresModelFor,Thing>(new GasMixture);
-      createRelationTo<requiresModelFor,Thing>(new PolyatomicEntity);
+      createRelationTo<requiresModelFor,Thing>(new HomonuclearMolecule);
+      createRelationTo<requiresModelFor,Thing>(new HeteronuclearMolecule);
 
-      M0=0; M1=0; M2=0;
+      M0=0.; M1=0.; M2=0.;
     }
 
     /// Constructor with initialization for the moments
@@ -68,8 +76,18 @@ public:
       M0 = _M0; M1 = _M1; M2 = _M2;
     }
 
+    /// Initialize the method - attempt to save computational time
+    template <class NT, class SPEC> void initialize(NT* nt, SPEC* sp) {
+
+      s_mass = sp -> template getRelatedObject<Mass>()[0] -> template getRelatedObject<Scalar>()[0]->data;
+      s_m_vol = nt -> template get_m_volume();
+      s_bulk_density_liq = sp -> template getRelatedObject<BulkDensityLiquid>()[0] -> template getRelatedObject<Scalar>()[0] -> data;
+      s_bulk_density_sol = sp -> template getRelatedObject<BulkDensitySolid>()[0] -> template getRelatedObject<Scalar>()[0] -> data;
+      s_T_melt = sp -> template getRelatedObject<MeltingPoint>()[0] -> template getRelatedObject<Scalar>()[0] -> data;
+    }
+
     /// Nanoparticle density [#/m3]
-    double get_density() const { return M0; }
+    double get_n_density() const { return M0; }
 
     /// Nanoparticle mean diameter [m]
     double get_mean_diameter() const { return (M0>0.0) ? pow(6*M1/(M_PI*M0),1./3.) : 0.0; }
@@ -88,28 +106,24 @@ public:
     /// \param S supersaturation ratio
     template <class GM, class NT, class SPEC> double timestep(double dt,  GM* gm, NT* nt, SPEC* sp) {
 
-      double T  = gm-> template get_T();
+      double T = gm-> template get_T();
       double S = gm -> template get_S(sp, T);
-      double m_vol = nt -> template get_m_volume(sp);
-      double t_csi1 = csi1(sp, nt, gm, T);
-      double t_csi2 = csi2(sp, T);
+      double gamma = gm -> template get_gamma();
+      double t_csi1 = csi1(sp,gm,T);
+      double t_csi2 = csi2(T);
 
       /*if (S < 1.0)
               S = 1.0;*/
 
-//      double ns_test = gm -> template get_n();
-
       double J = nt -> template nucleation_rate(sp, gm, T);
       double j = nt -> template stable_cluster_size(sp, gm, T);
 
-      double gamma = gm -> template get_gamma();
-
       // temporary moments values
-      double M0_, M1_, M2_;
+      double M0_, M1_, M2_  = 0;
 
       // volume of the critical size cluster
       // if S<1 the NucleationTheory object should return 1 as stable critical cluster size
-      double vm = j * m_vol;
+      double vm = j * s_m_vol;
 
       /// dissipation limit
       double vm1 = 0.0;
@@ -123,15 +137,14 @@ public:
       double ln2sg = ln2_standard_dev();
 
       // condensation source for each moment
-      double M1_cond;
-      double M2_cond;
+      double M1_cond = 0;
+      double M2_cond = 0;;
       M1_cond = t_csi1*(S - 1)*M_k(2. / 3., ln2sg, vg);
       M2_cond = 2 * t_csi1*(S - 1)*M_k(5. / 3., ln2sg, vg);
 
       // TEST
-      /*M1_cond = 0.0;
-      M2_cond = 0.0;*/
-
+//      M1_cond = 0.0;
+//      M2_cond = 0.0;
 
       double sg = exp(sqrt(ln2sg));
 
@@ -144,9 +157,9 @@ public:
                                             2*M_k(4./3.,ln2sg,vg) * M_k(5./6.,ln2sg,vg) +
                                               M_k(7./6.,ln2sg,vg) * M1);
 
-//      // TEST
-//      M0_coag = 0.0;
-//      M2_coag = 0.0;
+      // TEST
+      M0_coag = 0.0;
+      M2_coag = 0.0;
 
       // dissolution source: if S<1 then the flux of particles becoming smaller than a two monomers cluster
       // due to evaporation is removed from the particle set
@@ -178,7 +191,7 @@ public:
 
 
 
-        ////M0_diss *= 0;
+        //M0_diss *= 0;
         //M1_diss *= 1.0e5;
         //M2_diss *= 1.0e5;
 
@@ -189,18 +202,18 @@ public:
       M1_ = M1 + (M1_nucl + M1_cond           - M1_diss) * dt - gamma*M1*dt;
       M2_ = M2 + (M2_nucl + M2_cond + M2_coag - M2_diss) * dt - gamma*M2*dt;
 
-      /*M0_ = M0 + (M0_nucl - M0_coag - M0_diss) * dt;
-      M1_ = M1 + (M1_nucl + M1_cond - M1_diss) * dt;
-      M2_ = M2 + (M2_nucl + M2_cond + M2_coag - M2_diss) * dt;*/
+//      M0_ = M0 + (M0_nucl - M0_coag - M0_diss) * dt;
+//      M1_ = M1 + (M1_nucl + M1_cond - M1_diss) * dt;
+//      M2_ = M2 + (M2_nucl + M2_cond + M2_coag - M2_diss) * dt;
 
       // nucleating species consumption for
       // + homogeneous nucleation: J*j
       // + heterogenous nucleation: M1_cond/vm
       // - dissolution of evaporating particles reducing their size below vm
-      double g = J*j + (M1_cond - M1_diss)/m_vol;
+      double g = J*j + M1_cond/s_m_vol - M1_diss/s_m_vol;
 
-      // test
-//    g = 0.0;
+      // TEST
+      //g = 0.0;
 
       // DEBUG
       if (std::isnan(M0_) || std::isinf(M0_)) {
@@ -224,7 +237,8 @@ public:
                       << std::endl;
               std::cout
           << "J: " << J << std::endl;
-              system("PAUSE");
+//              system("PAUSE"); //does not work on Linux-based systems
+              std::cin.get();
         }
 
        // TEST
@@ -237,134 +251,8 @@ public:
       // update moments
       M0 = M0_; M1 = M1_; M2 = M2_;
 
-
-      //std::cout << M0 << ' ' << M1 << ' ' << M2 << ' ' << vm << ' '<< vg << ' ' << sigma << ' ' << xs << ' ' << M0_diss << ' ' << M1_diss << ' ' << M2_diss << std::endl;
-
       return g;
     }
-
-//    /// Timestep calculation
-//    /// \param dt timestep size [s]
-//    /// \param T temperature [K]
-//    /// \param J nucleation rate [#/m3 s]
-//    /// \param j stable cluster size [#]
-//    /// \param S supersaturation ratio
-//    template <class GM, class NT, class SPEC> double timestep(double dt,  GM* gm, NT* nt, SPEC* sp, int iter) {
-
-//      double T = gp.get_T();
-////    double S = gp.get_S("Fe");
-//  double S = gp.get_S(sp.get_formula());
-
-////    double ns_test = gp.get_n("Fe");
-//  double ns_test = gp.get_n(sp.get_formula());
-
-//      double J = nt.nucleation_rate(T, S);
-//      double j = nt.stable_cluster_size(T, S);
-
-//      double gamma = gp.get_gamma();
-
-//      // temporary moments values
-//      double M0_, M1_, M2_;
-
-//      // volume of the critical size cluster
-//      // if S<1 the NucleationTheory object should return 1 as stable critical cluster size
-//      double vm = j * species.m_volume();
-
-//      // nucleation source for each moment
-//      double M0_nucl = J;
-//      double M1_nucl = J * vm;
-//      double M2_nucl = J * vm*vm;
-
-//      double vg = geometric_mean_v();
-//      double ln2sg = ln2_standard_dev();
-
-//      // condensation source for each moment
-//      double M1_cond;
-//      double M2_cond;
-//      M1_cond = csi1(T)*(S - 1)*M_k(2. / 3., ln2sg, vg);
-//      M2_cond = 2 * csi1(T)*(S - 1)*M_k(5. / 3., ln2sg, vg);
-
-
-//      double sg = exp(sqrt(ln2sg));
-
-//      // coagulation source for each moment
-//      double M0_coag = csi2(T)*zeta0(sg)*(M_k(2. / 3., ln2sg, vg) * M_k(-1. / 2., ln2sg, vg) +
-//                                                                              2 * M_k(1. / 3., ln2sg, vg) * M_k(-1. / 6., ln2sg, vg) +
-//                                                                              M_k(1. / 6., ln2sg, vg) * M0);
-
-//      double M2_coag = 2 * csi2(T)*zeta2(sg)*(M_k(5. / 3., ln2sg, vg) * M_k(1. / 2., ln2sg, vg) +
-//                                                                                      2 * M_k(4. / 3., ln2sg, vg) * M_k(5. / 6., ln2sg, vg) +
-//                                                                                      M_k(7. / 6., ln2sg, vg) * M1);
-
-//      //if (M2_coag < 0.0 ) M2_coag = 0.0;
-
-//      // dissolution source: if S<1 then the flux of particles becoming smaller than a two monomers cluster
-//      // due to evaporation is removed from the particle set
-//      // in this case vm = 1 must hold
-//      double sigma = 3.0 * sqrt(ln2sg);
-//      double M0_diss = 0;
-//      double M1_diss = 0;
-//      double M2_diss = 0;
-
-//      if ((S<1) && (vg>0) && (sigma>0)) {
-
-//              vm *= 2;
-
-//	      double nm = M0 / (sigma*sqrt(2 * M_PI)) * exp(-pow(log(vm / vg), 2) / (2 * sigma*sigma)) / vm;
-//	      double G0 = csi1(T)*pow(vm, 2. / 3.)*(S - 1);
-
-//	      M0_diss = -G0*nm; // particle number reduction
-//	      M1_diss = -G0*nm*vm; // particle volume reduction
-//	      M2_diss = -G0*nm*vm*vm; // M2 reduction
-//      }
-
-//      // moments equations solution (simple first order explicit method) (TO BE IMPROVED!!!)
-//      M0_ = M0 + (M0_nucl - M0_coag - M0_diss) * dt - gamma*M0*dt;
-//      M1_ = M1 + (M1_nucl + M1_cond - M1_diss) * dt - gamma*M1*dt;
-//      M2_ = M2 + (M2_nucl + M2_cond + M2_coag - M2_diss) * dt - gamma*M2*dt;
-
-//      // nucleating species consumption for
-//      // + homogeneous nucleation: J*j
-//      // + heterogenous nucleation: M1_cond/vm
-//      // - dissolution of evaporating particles reducing their size below vm
-//      double g = J*j + M1_cond / species.m_volume() - M1_diss / species.m_volume();
-
-//      // DEBUG
-
-//      /*if (std::isnan(M0_) || std::isinf(M0_) || iter > 18272595) {
-//              std::cout
-//                      << " iter "<<iter<< std::endl
-//                      << " M0: " << M0 << std::endl
-//                      << " M1: " << M1 << std::endl
-//                      << " M2: " << M2 << std::endl
-//                      << " M0_nucl: " << M0_nucl << std::endl
-//                      << " M0_coag: " << M0_coag << std::endl
-//                      << " M0_diss: " << M0_diss << std::endl
-//                      << " csi2(T): " << csi2(T) << std::endl
-//                      << " zeta0(sg): " << zeta0(sg) << std::endl
-//                      << " sg: " << sg << std::endl
-//                      << " vg: " << vg << std::endl
-//                      << " ln2sg: " << ln2sg << std::endl
-//                      << " M_k(2. / 3., ln2sg, vg): " << M_k(2. / 3., ln2sg, vg) << std::endl
-//                      << " M_k(-1. / 2., ln2sg, vg): " << M_k(-1. / 2., ln2sg, vg) << std::endl
-//                      << " M_k(1. / 3., ln2sg, vg): " << M_k(1. / 3., ln2sg, vg) << std::endl
-//                      << " M_k(-1. / 6., ln2sg, vg): " << M_k(-1. / 6., ln2sg, vg) << std::endl
-//                      << " M_k(1. / 6., ln2sg, vg): " << M_k(1. / 6., ln2sg, vg) << std::endl
-//                      << std::endl;
-//              std::cout
-//                      << " J: " << nt.nucleation_rate(gp.get_T(), gp.get_S("Si")) << std::endl;
-
-//              system("PAUSE");
-//      }*/
-
-//      // update moments
-//      M0 = M0_; M1 = M1_; M2 = M2_;
-
-
-//      //std::cout << M0 << ' ' << M1 << ' ' << M2 << ' ' << vm << ' '<< vg << ' ' << sigma << ' ' << xs << ' ' << M0_diss << ' ' << M1_diss << ' ' << M2_diss << std::endl;
-
-//      return g;
-//}
 
     /// Return the geometric mean volume [m3]
     double geometric_mean_v() {
@@ -383,11 +271,11 @@ public:
             value = (1./9.) * log(arg);
             // Debug
             if (std::isinf(value)) {
-                    std::cout << "SG COMPUTATION" << std::endl;
-                    std::cout
-                            << " M0: " << M0 << std::endl
-                            << " M1: " << M1 << std::endl
-                            << " M2: " << M2 << std::endl;
+              std::cout << "SG COMPUTATION" << std::endl;
+              std::cout
+                  << " M0: " << M0 << std::endl
+                  << " M1: " << M1 << std::endl
+                  << " M2: " << M2 << std::endl;
             }
         }
 
@@ -399,6 +287,9 @@ public:
 
     /// Return the condenstion source term
     template <class SPEC, class NT> double get_cond_term(SPEC* species, NT* nt) const { return M1_cond / nt-> template get_m_volume(species); }
+
+    /// Get M0
+    double get_M0()const { return M0; }
 
     /// Get M1
     double get_M1()const { return M1; }
@@ -423,28 +314,22 @@ public:
     }
 
 
-    template <class SPEC, class NT, class GM> double csi1(SPEC* species, NT* nt, GM* gm, double T) {
-      double s_mass = species-> template getRelatedObject<Mass>()[0] -> template getRelatedObject<Scalar>()[0]->data;
-      double s_m_vol = nt -> template get_m_volume(species);
+    template <class SPEC, class GM> double csi1(SPEC* species, GM* gm, double T) {
       double s_n_sat = gm -> template get_n_sat(species,T);
 
       return s_m_vol*s_n_sat*4.835975862049408*sqrt(K_BOL*T/(2*M_PI*s_mass));
     }
 
-    template <class SPEC> double csi2(SPEC* species, double T) {
-      double s_bulk = get_bulk_density(species,T);
+    double csi2(double T) {
+      double s_bulk = get_bulk_density(T);
 
       return 0.787623317899743*sqrt(6*K_BOL*T/s_bulk);
     }
 
     /// Get Species bulk density [kg/m3]
     /// \param T Species temperature [K]
-    template<class SPEC> double get_bulk_density(SPEC* species, double T) {
-      double bulk_density_liq = species -> template getRelatedObject<BulkDensityLiquid>()[0] -> template getRelatedObject<Scalar>()[0] -> data;
-      double bulk_density_sol = species -> template getRelatedObject<BulkDensitySolid>()[0] -> template getRelatedObject<Scalar>()[0] -> data;
-      double T_melt = species -> template getRelatedObject<MeltingPoint>()[0] -> template getRelatedObject<Scalar>()[0] -> data;
-
-      return (T<T_melt) ? bulk_density_sol : bulk_density_liq;
+    double get_bulk_density(double T) {
+      return (T<s_T_melt) ? s_bulk_density_sol : s_bulk_density_liq;
     }
 
     /// Get Lognormal

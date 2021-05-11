@@ -38,6 +38,7 @@ protected:
     double dpdt; ///< Gas phase pressure time derivative [Pa/s]
     double T; ///< Gas phase temperature [K]
     double dTdt; ///< Gas phase temperature time derivative [K/s]
+    double gamma = 0; //< Gas phase expansion coefficient [1/s]
     std::valarray<double> w; ///< Species molar fractions
 
 public:
@@ -49,7 +50,7 @@ public:
     std::string getClassName() const { return "Gas Continuum Model"; }
 
     /// Run the model
-    void run(GasMixture* gm, double dt, std::valarray<double> w_cons) {
+    void timestep(GasMixture* gm, double dt, std::valarray<double> w_cons) {
       // Get the GasMixture conditions
       p = get<Pressure,GasMixture>(gm);
       dpdt = get<PressureTimeDerivative,GasMixture>(gm);
@@ -88,12 +89,12 @@ public:
       n = p/(K_BOL*T);
       w = ns/n;
 
-      // update molar fractions of each species
+      // update molar fraction of each species
       for (std::size_t i = 0; i < w.size(); ++i) {
           update<MolarFraction, PolyatomicEntity>(specs[i],w[i]);
       }
 
-      print(gm);
+//      print(gm);
     }
 
     /// Get gas phase molar fractions
@@ -162,6 +163,12 @@ public:
 
     /// Get gas phase number density [#/m3]
     double get_n() const { return p/(K_BOL*T); }
+
+    /// Get gas phase Temperature [K]
+    double get_T() const { return T; }
+
+    /// Get gas phase expansion coefficient [1/s]
+    double get_gamma() const { return gamma; }
 
     /// Get superaturation ratio [#]
     /// \param spec selected species

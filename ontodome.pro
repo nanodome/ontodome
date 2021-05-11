@@ -6,7 +6,9 @@ CONFIG -= qt
 SOURCES += \
 		src/main.cpp \
 		src/base/relation.cpp \
-		src/base/thing.cpp
+		src/base/thing.cpp \
+		src/tools/clock.cpp \
+		src/tools/utilities.cpp
 
 HEADERS += \
 		src/base/relation.h \
@@ -15,4 +17,6 @@ HEADERS += \
 		src/models/gasmodels/gasmodelcv.h \
 		src/models/nanomodels/moments/momentmodelpratsinis.h \
 		src/models/nanomodels/nucleation/cnt.h \
-		src/ontodome.h
+		src/ontodome.h \
+		src/tools/clock.h \
+		src/tools/utilities.h

@@ -89,4 +89,7 @@ typedef struct raw_c_data {
 	double dt = -1;
 }raw_configuration_data;
 
+#include "tools/clock.h"
+#include "tools/utilities.h"
+
 #endif // ONTODOME
