@@ -87,10 +87,6 @@ public:
 template<class T, class T0, class T1>
 Relation* addRelation(T0* o0, T1* o1);
 
-// Add multiple relation at once for lazy people
-template<class T, class T0, class T1>
-std::vector<Relation*> addRelations(T0* o0, std::vector<T1*> o1);
-
 #include "relation.cpp"
 
 #endif // RELATION_H

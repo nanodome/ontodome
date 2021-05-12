@@ -8,9 +8,13 @@
 #include "models/nanomodels/nucleation/cnt.h"
 #include "models/nanomodels/moments/momentmodelpratsinis.h"
 
-void MomentsRun(GasModel* gm, GasMixture* gp, ClassicalNucleationTheory* cnt, MomentModelPratsinis* mm) {
+void MomentsRun(GasModel* gm, GasMixture* GP, ClassicalNucleationTheory* cnt, MomentModelPratsinis* mm) {
 
   // Condensing species datas
+  // Get the initial state of the domain
+  auto gp = GP->get_State(0.);
+
+  // Get the initial parameters
   auto spec = gp->getRelatedObject<PolyatomicEntity>()[0];
   std::valarray<double> w_cons;
   w_cons.resize(gp->getRelatedObject<PolyatomicEntity>().size());
@@ -33,21 +37,21 @@ void MomentsRun(GasModel* gm, GasMixture* gp, ClassicalNucleationTheory* cnt, Mo
   // loop over timesteps until the final temperature
   while(t <= t_end) {
 
-      double T = gp->getRelatedObject<Temperature>()[0]->getRelatedObject<Scalar>()[0]->data;
+      double T = gm->get_T();
       double S = gm->get_S(spec,T);
 //      double J = cnt->nucleation_rate(spec,gm,T);
 //      double j = cnt->stable_cluster_size(spec,gm,T);
 
       if (T < 300.) { break; }
 //      if (T <= 300.) {
-//          gm->update<TemperatureTimeDerivative, GasMixture>(gp,0.);
+//          gm->dTdt = 0;
 //      }
 
       // moment method timestep and species consumption retrieval
       w_cons[0] = - mm->timestep(dt, gm, cnt, spec);
 
       // updating the gas phase
-      gm->timestep(gp,dt,w_cons);
+      gm->timestep(dt,w_cons);
 
       ++iter;
       t+=dt;
@@ -59,7 +63,7 @@ void MomentsRun(GasModel* gm, GasMixture* gp, ClassicalNucleationTheory* cnt, Mo
               << "Time= "<< t << '\t'
               << "Temp= " << T << '\t'
               << "Sat_" << spec_name << "= " << S << '\t'
-              << "w_" << spec_name << "= " << gm->get_molar_fractions()[0] << '\t'
+              << "w_" << spec_name << "= " << gm->w[0] << '\t'
               << spec_name << "_cons= " << -w_cons[0] << '\t'
               << "Mean Diam_" << spec_name << "= " << mm->get_mean_diameter() << '\t'
               << "M0_" << spec_name << "= " << mm->get_M0() << '\t'
@@ -68,6 +72,7 @@ void MomentsRun(GasModel* gm, GasMixture* gp, ClassicalNucleationTheory* cnt, Mo
               << std::endl << std::endl;
       }
   }
+  gm->finalize(GP,t);
 }
 
 int main()
@@ -75,8 +80,8 @@ int main()
     WallClock clock;
     clock.start();
 
-    double ww = 0.005;
-    double T_start = 5000.;
+    double ww = 0.0005;
+    double T_start = 4000.;
 
     HomonuclearMolecule Si;
     MolarFraction msi(new Scalar(ww), new Unit("#"));
@@ -145,14 +150,9 @@ int main()
     Temperature T(new Scalar(T_start), new Unit("K"));
     PressureTimeDerivative dpdt(new Scalar(0.), new Unit("Pa/s"));
     TemperatureTimeDerivative dTdt(new Scalar(-1e+5), new Unit("K/s"));
-    gp.createRelationTo<hasProperty,Pressure>(&p);
-    gp.createRelationTo<hasProperty,Temperature>(&T);
-    gp.createRelationTo<hasProperty,PressureTimeDerivative>(&dpdt);
-    gp.createRelationTo<hasProperty,TemperatureTimeDerivative>(&dTdt);
-    gp.createRelationTo<hasPart,HomonuclearMolecule>(&Si);
-    gp.createRelationTo<hasPart,HomonuclearMolecule>(&He);
-    gp.createRelationTo<hasPart,HeteronuclearMolecule>(&CH4);
-    gp.createRelationTo<hasPart,HomonuclearMolecule>(&H);
+
+    gp.initialize<hasProperty,Quantity>({&p,&T,&dpdt,&dTdt});
+    gp.initialize<hasPart,PolyatomicEntity>({&Si,&He,&CH4,&H});
 
     GasModel gm;
 //    GasModelCV gm;

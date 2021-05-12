@@ -3,12 +3,14 @@
 
 #include <iostream>
 #include <vector>
+#include <map>
 
 #include "baseclass.h"
 #include "relation.h"
 #include "datatypes.h"
 
 class Thing : public BaseClass {
+//class Thing {
 
     // dynamic relations
     std::vector<Relation*> relations;
@@ -28,6 +30,26 @@ public:
         o1->addRelation(r);
     }
 
+    template<class T, class T0>
+    void createRelationsTo(std::vector<T0*> o1) {
+
+      for (auto i : o1) {
+        T* r = new T(this,i);
+
+        this->addRelation(r);
+        i->addRelation(r);
+      }
+    }
+
+    template<class T, class T0, class IN>
+    void createRelationToIn(IN* in,T0* o1) {
+
+        T* r = new T(in,o1);
+
+        in->addRelation(r);
+        o1->addRelation(r);
+    }
+
     // find a relation of a specific type
     // TODO: optimize search using multimap<std::string,Relation*>,
     //       getClassName() function for the key and a static_cast<T*>
@@ -37,7 +59,6 @@ public:
     template<class T>
     std::vector<T*> getRelatedObject();
 };
-
 
 class Item : public Thing {
 public:
@@ -289,8 +310,32 @@ public:
 };
 
 class Matter : public Perspective {
+private:
+      std::map<double,Matter*> states;
+
 public:
     std::string getClassName() const { return "Matter"; }
+
+    void push_state(Matter* state,double time) {
+      states.insert(std::pair<double,Matter*>(time,state));
+    }
+
+    auto get_State(double time) {
+      return states.at(time);
+    }
+
+    template <class relation, class entity> void initialize (std::vector<entity*> ents) {
+      if (!states.count(0.)) {
+        states.insert(std::pair<double,Matter*>(0.,new Matter));
+        for (auto i : ents) {
+          createRelationToIn<relation,entity,Matter>(states.at(0.),i);
+        }
+      } else {
+        for (auto i : ents) {
+          createRelationToIn<relation,entity,Matter>(states.at(0.),i);
+        }
+      }
+    }
 };
 
 class Continuum : public Matter {

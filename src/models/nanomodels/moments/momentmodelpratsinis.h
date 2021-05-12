@@ -95,7 +95,7 @@ public:
     /// Nanoparticle volume density [m3/m3]
     double get_total_volume() const { return M1; }
 
-    /// ... [m6/m3]
+    /// Nanoparticle total area [m6/m3]
     double get_total_area() const { return M2; }
 
     /// Timestep calculation

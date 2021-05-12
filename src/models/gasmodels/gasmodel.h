@@ -23,6 +23,7 @@
 #define GASMODEL_H
 
 #include <valarray>
+#include <map>
 
 #include "../../ontodome.h"
 #include "../../base/thing.h"
@@ -33,16 +34,17 @@
 class GasModel  : public ContinuumModel {
 
 protected:
+    std::map<boost::uuids::uuid,std::size_t> hash; ///< Hash map for name-to-index resolution
 
+public:
     double p; ///< Gas phase pressure [Pa]
-    double dpdt; ///< Gas phase pressure time derivative [Pa/s]
     double T; ///< Gas phase temperature [K]
+    double dpdt; ///< Gas phase pressure time derivative [Pa/s]
     double dTdt; ///< Gas phase temperature time derivative [K/s]
     double gamma; ///< expansion coefficient [1/s]
     std::vector<PolyatomicEntity*> specs; ///< vector containing all the species
     std::valarray<double> w; ///< Species molar fractions
 
-public:
     GasModel()
     {
       createRelationTo<isModelFor,Thing>(new GasMixture);
@@ -53,21 +55,21 @@ public:
     std::string getClassName() const { return "Gas Continuum Model"; }
 
     /// Run the model
-    void initialize(GasMixture* gp) {
+    void initialize(Matter* gp) {
       // Get the GasMixture conditions
       specs = gp->getRelatedObject<PolyatomicEntity>();
-      p = get<Pressure,GasMixture>(gp);
-      dpdt = get<PressureTimeDerivative,GasMixture>(gp);
-      T = get<Temperature,GasMixture>(gp);
-      dTdt = get<TemperatureTimeDerivative,GasMixture>(gp);
+      p = get<Pressure,Matter>(gp);
+      dpdt = get<PressureTimeDerivative,Matter>(gp);
+      T = get<Temperature,Matter>(gp);
+      dTdt = get<TemperatureTimeDerivative,Matter>(gp);
       w = get_molar_fractions();
+
+      for(size_t i=0; i<specs.size(); ++i)
+          hash[specs[i]->getUuid()] = i;
     }
 
     /// Run the model
-    void timestep(GasMixture* gm, double dt, std::valarray<double> w_cons) {
-      // Get the GasMixture derivatives
-      dpdt = get<PressureTimeDerivative,GasMixture>(gm);
-      dTdt = get<TemperatureTimeDerivative,GasMixture>(gm);
+    void timestep(double dt, std::valarray<double> w_cons) {
 
       // Check if molar fraction vector total sum is smaller than 1 for consistency
       if (w.sum() > 1.) { abort(); }
@@ -88,24 +90,33 @@ public:
       // equation is solved for the number density
       for (std::size_t i = 0; i < w_cons.size(); ++i) {
           ns[i] += (w_cons[i] - ns[i] * gamma) * dt; // Volume contraction
+          if (ns[i] < 0) abort();
       }
 
       // gas phase pressure and temperature update
       T += dTdt*dt;
       p += dpdt*dt;
 
-      // update the GasMixture
-      update<Pressure, GasMixture>(gm,p);
-      update<Temperature, GasMixture>(gm,T);
-
       // molar fractions update
       n = p/(K_BOL*T);
       w = ns/n;
+    }
 
-      // update molar fraction of each species
-      for (std::size_t i = 0; i < w.size(); ++i) {
-          update<MolarFraction, PolyatomicEntity>(specs[i],w[i]);
-      }
+    /// Push final state to GasMixture
+    void finalize(Matter* gp,double time) {
+      //create the state to push
+      auto state = new Matter;
+
+      state->createRelationsTo<hasProperty,Quantity>({
+        new Pressure (new Scalar(p), new Unit("Pa")),
+        new Temperature (new Scalar(T), new Unit("K")),
+        new PressureTimeDerivative (new Scalar(dpdt), new Unit("Pa/s")),
+        new TemperatureTimeDerivative (new Scalar(dTdt), new Unit("K/s"))});
+
+      state->createRelationsTo<hasPart,PolyatomicEntity>(specs);
+
+      //push the state to GasMixture
+      gp->push_state(state,time);
     }
 
     /// Get gas phase molar fractions
@@ -183,7 +194,7 @@ public:
     /// \param T temperature [K]
     template <class TT> double get_S(TT* spec, double T) const {
 
-      double m_frac = spec->template getRelatedObject<MolarFraction>()[0]->template getRelatedObject<Scalar>()[0]->data;
+      double m_frac = w[hash.at(spec->getUuid())];
       double ns = m_frac*p/(K_BOL*T);
       double n_sat = get_n_sat<TT>(spec,T);
 
