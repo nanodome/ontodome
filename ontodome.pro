@@ -8,6 +8,7 @@ SOURCES += \
 		src/base/relation.cpp \
 		src/base/thing.cpp \
 		src/tools/clock.cpp \
+#		src/tools/rkf45.cpp \
 		src/tools/utilities.cpp
 
 HEADERS += \
@@ -19,4 +20,5 @@ HEADERS += \
 		src/models/nanomodels/nucleation/cnt.h \
 		src/ontodome.h \
 		src/tools/clock.h \
+#		src/tools/rkf45.h \
 		src/tools/utilities.h

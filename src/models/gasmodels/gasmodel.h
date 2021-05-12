@@ -39,7 +39,7 @@ protected:
     double T; ///< Gas phase temperature [K]
     double dTdt; ///< Gas phase temperature time derivative [K/s]
     double gamma; ///< expansion coefficient [1/s]
-    std::vector<PolyatomicEntity*> specs;
+    std::vector<PolyatomicEntity*> specs; ///< vector containing all the species
     std::valarray<double> w; ///< Species molar fractions
 
 public:

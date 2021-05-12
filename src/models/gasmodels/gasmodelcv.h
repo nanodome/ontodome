@@ -39,42 +39,55 @@ protected:
     double T; ///< Gas phase temperature [K]
     double dTdt; ///< Gas phase temperature time derivative [K/s]
     double gamma = 0; //< Gas phase expansion coefficient [1/s]
+    std::vector<PolyatomicEntity*> specs; ///< vector containing all the species
     std::valarray<double> w; ///< Species molar fractions
 
 public:
     GasModelCV()
     {
       createRelationTo<isModelFor,Thing>(new GasMixture);
+      createRelationTo<isModelFor,Thing>(new HomonuclearMolecule);
+      createRelationTo<isModelFor,Thing>(new HeteronuclearMolecule);
     }
 
-    std::string getClassName() const { return "Gas Continuum Model"; }
+    std::string getClassName() const { return "Gas Continuum Model with constant volume assumption"; }
+
+    /// Run the model
+    void initialize(GasMixture* gp) {
+      // Get the GasMixture conditions
+      specs = gp->getRelatedObject<PolyatomicEntity>();
+      p = get<Pressure,GasMixture>(gp);
+      dpdt = get<PressureTimeDerivative,GasMixture>(gp);
+      T = get<Temperature,GasMixture>(gp);
+      dTdt = get<TemperatureTimeDerivative,GasMixture>(gp);
+      w = get_molar_fractions();
+    }
 
     /// Run the model
     void timestep(GasMixture* gm, double dt, std::valarray<double> w_cons) {
-      // Get the GasMixture conditions
-      p = get<Pressure,GasMixture>(gm);
+      // Get the GasMixture derivatives
       dpdt = get<PressureTimeDerivative,GasMixture>(gm);
-      T = get<Temperature,GasMixture>(gm);
       dTdt = get<TemperatureTimeDerivative,GasMixture>(gm);
-      w = get_molar_fractions(gm);
 
       // Check if molar fraction vector total sum is smaller than 1 for consistency
       if (w.sum() > 1.) { abort(); }
 
       // Check if consumption vector and available species number matches
       // If not, the code must abort
-      std::vector<PolyatomicEntity*> specs = gm->getRelatedObject<PolyatomicEntity>();
       if (specs.size() != w_cons.size()) { abort(); }
 
       // Compute the new species number densities
       double n = p/(K_BOL*T); // number of monomers on m3
+      double w_cons_tot = w_cons.sum(); // total number of consumed monomers
 
       std::valarray<double> ns = w*n; // number of monomers for each species
+
+      gamma = w_cons_tot/n + dTdt/T - dpdt/p;
 
       // simple explicit ODE timestep
       // equation is solved for the number density
       for (std::size_t i = 0; i < w_cons.size(); ++i) {
-          ns[i] += (w_cons[i]) * dt; // constant volume
+          ns[i] += (w_cons[i] - ns[i] * gamma) * dt; // Volume contraction
       }
 
       // gas phase pressure and temperature update
@@ -93,15 +106,11 @@ public:
       for (std::size_t i = 0; i < w.size(); ++i) {
           update<MolarFraction, PolyatomicEntity>(specs[i],w[i]);
       }
-
-//      print(gm);
     }
 
     /// Get gas phase molar fractions
-    std::valarray<double> get_molar_fractions(GasMixture* gm)
+    std::valarray<double> get_molar_fractions()
     {
-      std::vector<PolyatomicEntity*> specs = gm->getRelatedObject<PolyatomicEntity>();
-
       if (!specs.empty())
       {
           w.resize(specs.size());
@@ -150,11 +159,16 @@ public:
       else { abort(); }
     }
 
+    /// Get the expansion coefficient [1/s]
+    double get_gamma() const { return gamma; }
+
+    /// Get the temperature [K]
+    double get_T() const { return T; }
+
     /// Get gas phase molecules average viscosity [Pa s]
-    double get_average_viscosity(GasMixture* gm) const {
+    double get_average_viscosity() const {
       double visc = 0;
 
-      std::vector<PolyatomicEntity*> specs = gm->getRelatedObject<PolyatomicEntity>();
       for(size_t i=0; i<w.size(); ++i)
        visc += specs[i]->getRelatedObject<Viscosity>()[0]->getRelatedObject<Scalar>()[0]->data * w[i];
 
@@ -164,12 +178,6 @@ public:
     /// Get gas phase number density [#/m3]
     double get_n() const { return p/(K_BOL*T); }
 
-    /// Get gas phase Temperature [K]
-    double get_T() const { return T; }
-
-    /// Get gas phase expansion coefficient [1/s]
-    double get_gamma() const { return gamma; }
-
     /// Get superaturation ratio [#]
     /// \param spec selected species
     /// \param T temperature [K]
@@ -177,9 +185,9 @@ public:
 
       double m_frac = spec->template getRelatedObject<MolarFraction>()[0]->template getRelatedObject<Scalar>()[0]->data;
       double ns = m_frac*p/(K_BOL*T);
+      double n_sat = get_n_sat<TT>(spec,T);
 
-      double s_sat = get_n_sat<TT>(spec,T);
-      return ns/s_sat;
+      return ns/n_sat;
     }
 
     /// Saturation density [#/m3]
@@ -188,14 +196,13 @@ public:
     template <class TT> double get_n_sat(TT* spec, double T) const { return spec->template getRelatedObject<SaturationPressure>()[0]->get_p_sat(T) /(K_BOL*T); }
 
     /// Get gas phase mass density [kg/m3]
-    double get_density(GasMixture* gm) const { return get_average_molecular_mass(gm) * p/(K_BOL*T); }
+    double get_density() const { return get_average_molecular_mass() * p/(K_BOL*T); }
 
     /// Get gas phase molecules average mass [kg]
-    double get_average_molecular_mass(GasMixture* gm) const {
+    double get_average_molecular_mass() const {
 
       double m = 0.;
 
-      std::vector<PolyatomicEntity*> specs = gm->getRelatedObject<PolyatomicEntity>();
       for(size_t i=0; i<w.size(); ++i)
           m += specs[i]->getRelatedObject<Mass>()[0]->getRelatedObject<Scalar>()[0]->data * w[i];
 
@@ -203,13 +210,12 @@ public:
     }
 
     /// Get gas phase mean free path [m]
-    double get_mfp(GasMixture* gm) const { return (get_average_viscosity(gm)/p) * sqrt(M_PI*K_BOL*T/(2.*get_average_molecular_mass(gm))); }
+    double get_mfp() const { return (get_average_viscosity()/p) * sqrt(M_PI*K_BOL*T/(2.*get_average_molecular_mass())); }
 
     /// Get gas flux used for Langevin dynamics [kg/m2 s]
-    double get_gas_flux(GasMixture* gm) const {
+    double get_gas_flux() const {
       double flux = 0.;
 
-      std::vector<PolyatomicEntity*> specs = gm->getRelatedObject<PolyatomicEntity>();
       for(size_t i=0; i<w.size(); ++i) {
 
           double m_gas = specs[i]->getRelatedObject<Mass>()[0]->getRelatedObject<Scalar>()[0]->data;
@@ -222,8 +228,8 @@ public:
     }
 
     /// Print gas phase parameters
-    void print(GasMixture* gm) {
-      for(auto& sp : gm->getRelatedObject<PolyatomicEntity>())
+    void print() {
+      for(auto& sp : specs)
           std::cout << sp->getRelatedObject<IUPAC>()[0]->data << '\t';
       std::cout << "Sum" << '\t';
       std::cout << std::endl;
@@ -233,8 +239,8 @@ public:
       std::cout << w.sum() << '\t';
       std::cout << std::endl << std::endl;
 
-      std::cout << "T[K]\t" << "p[Pa]\t" << "n[#/m3]" << std::endl;
-      std::cout << T << "\t" << p << "\t" << p/(K_BOL*T) << std::endl << std::endl;
+      std::cout << "T[K]\t" << "p[Pa]\t" << "n[#/m3]\t" << std::endl;
+      std::cout << T << "\t" << p << "\t" << p/(K_BOL*T) << "\t" << std::endl << std::endl;
     };
 
 };

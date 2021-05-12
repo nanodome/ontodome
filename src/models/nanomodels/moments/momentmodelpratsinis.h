@@ -189,8 +189,6 @@ public:
         M1_diss = -G0*nm*vm1; // particle volume reduction
         M2_diss = -G0*nm*vm1*vm1; // M2 reduction
 
-
-
         //M0_diss *= 0;
         //M1_diss *= 1.0e5;
         //M2_diss *= 1.0e5;
