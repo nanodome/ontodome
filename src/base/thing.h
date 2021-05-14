@@ -70,7 +70,7 @@ public:
     std::string getClassName() const { return "Collection"; }
 };
 
-class Physical : public Thing {
+class Physical : public Item {
 public:
     std::string getClassName() const { return "Physical"; }
 };
@@ -80,7 +80,7 @@ public:
     std::string getClassName() const { return "Quantum"; }
 };
 
-class Void : public Thing {
+class Void : public Item {
 public:
     std::string getClassName() const { return "Void"; }
 };
@@ -100,7 +100,7 @@ public:
     std::string getClassName() const { return "Symbolic"; }
 };
 
-class String : public Symbolic
+class String : public Symbolic, public DataType<std::string>
 {
 public:
     std::string getClassName() const { return "String"; }
@@ -113,7 +113,7 @@ public:
     std::string getClassName() const { return "Vector"; }
 };
 
-class IUPAC : public String, public DataType<std::string>
+class IUPAC : public String
 {
 public:
     IUPAC(std::string _iupac) { data = _iupac; }
@@ -121,7 +121,7 @@ public:
     std::string getClassName() const { return "IUPAC Name"; }
 };
 
-class Unit : public Symbolic, public DataType<std::string>
+class Unit : public String
 {
 public:
     Unit(std::string s) {data = s;}
