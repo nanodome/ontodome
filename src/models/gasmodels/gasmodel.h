@@ -72,7 +72,8 @@ public:
     void timestep(double dt, std::valarray<double> w_cons) {
 
       // Check if molar fraction vector total sum is smaller than 1 for consistency
-      if (w.sum() > 1.) { abort(); }
+      // A 1% excess is tolerated
+      if (w.sum() >= 1.*1.01) { abort(); }
 
       // Check if consumption vector and available species number matches
       // If not, the code must abort
@@ -180,6 +181,9 @@ public:
 
     /// Get the temperature [K]
     double get_T() const { return T; }
+
+    /// Get the pressure [pa]
+    double get_p() const { return p; }
 
     /// Get gas phase molecules average viscosity [Pa s]
     double get_average_viscosity() const {

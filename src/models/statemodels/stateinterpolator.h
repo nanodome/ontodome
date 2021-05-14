@@ -1,9 +1,9 @@
-#ifndef INTERPOLATOR_H
-#define INTERPOLATOR_H
+#ifndef STATEINTERPOLATOR_H
+#define STATEINTERPOLATOR_H
 
 #include "../../base/thing.h"
 
-class Interpolator : public Model {
+class StateInterpolator : public Model {
 public:
   std::string getClassName() const { return "State temporal intepolator"; }
 
@@ -17,6 +17,9 @@ public:
           }
           down = st;
       }
+
+      // Abort if requested time is out of available range
+      if (up.first == 0) { abort(); }
 
       // Create the interpolated state to be filled with new datas
       auto interpolated = new Matter;
@@ -45,8 +48,10 @@ public:
                   interpolated->createRelationTo<hasProperty,Thing>(dup);
               }
               else if (dynamic_cast<Matter*>(o1)) {
-                auto dup = o1;
-                interpolated->createRelationTo<hasPart,Thing>(dup);
+                if (o1->getUuid() == o2->getUuid()) {
+                  auto dup = o1;
+                  interpolated->createRelationTo<hasPart,Thing>(dup);
+                }
               }
             }
           }
@@ -56,4 +61,4 @@ public:
   }
 };
 
-#endif // INTERPOLATOR_H
+#endif // STATEINTERPOLATOR_H

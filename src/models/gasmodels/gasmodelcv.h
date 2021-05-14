@@ -176,6 +176,9 @@ public:
     /// Get the temperature [K]
     double get_T() const { return T; }
 
+    /// Get the pressure [pa]
+    double get_p() const { return p; }
+
     /// Get gas phase molecules average viscosity [Pa s]
     double get_average_viscosity() const {
       double visc = 0;
