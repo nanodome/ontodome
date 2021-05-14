@@ -72,7 +72,8 @@ public:
     void timestep(double dt, std::valarray<double> w_cons) {
 
       // Check if molar fraction vector total sum is smaller than 1 for consistency
-      if (w.sum() > 1.) { abort(); }
+      // A 1% excess is tolerated
+      if (w.sum() >= 1.*1.01) { abort(); }
 
       // Check if consumption vector and available species number matches
       // If not, the code must abort
@@ -103,16 +104,21 @@ public:
     }
 
     /// Push final state to GasMixture
-    void finalize(Matter* gp,double time) {
+    void add_temporal_state(Matter* gp,double time) {
       //create the state to push
       auto state = new Matter;
 
+      //add the current GasMixture thermodynamic state
       state->createRelationsTo<hasProperty,Quantity>({
         new Pressure (new Scalar(p), new Unit("Pa")),
         new Temperature (new Scalar(T), new Unit("K")),
         new PressureTimeDerivative (new Scalar(dpdt), new Unit("Pa/s")),
         new TemperatureTimeDerivative (new Scalar(dTdt), new Unit("K/s"))});
 
+      //update and add the current species state
+      for (auto i : specs) {
+          update<MolarFraction,Matter>(i,w[hash.at(i->getUuid())]);
+      }
       state->createRelationsTo<hasPart,PolyatomicEntity>(specs);
 
       //push the state to GasMixture
@@ -175,6 +181,9 @@ public:
 
     /// Get the temperature [K]
     double get_T() const { return T; }
+
+    /// Get the pressure [pa]
+    double get_p() const { return p; }
 
     /// Get gas phase molecules average viscosity [Pa s]
     double get_average_viscosity() const {
