@@ -45,10 +45,16 @@ public:
     // TODO: optimize search using multimap<std::string,Relation*>,
     //       getClassName() function for the key and a static_cast<T*>
     template<class T>
-    std::vector<T*> getRelation();
+    std::vector<T*> getRelations();
 
     template<class T>
-    std::vector<T*> getRelatedObject();
+    std::vector<T*> getRelatedObjects();
+
+    template<class T>
+    std::vector<double> getRelatedScalarObjects();
+
+    template<class T>
+    std::vector<std::vector<double>> getRelatedVectorObjects();
 };
 
 class Item : public Thing {
@@ -242,24 +248,14 @@ public:
     SurfaceTension(Scalar* _s, Unit* _u) : ScalarQuantity(_s,_u) {}
 
     std::string getClassName() const { return "SurfaceTension"; }
-
-private:
-  std::vector<double> _s = this->getRelatedObject<Vector>()[0]->getRelatedObject<Vector>()[0]->data;
 };
 
-class SaturationPressure : public VectorQuantity
+class SaturationPressure : public ScalarQuantity
 {
 public:
-    SaturationPressure(Vector* _s, Unit* _u) : VectorQuantity(_s,_u) {}
+    SaturationPressure(Scalar* _s, Unit* _u) : ScalarQuantity(_s,_u) {}
 
-    double get_p_sat(double T) {
-      return pow(10.0,(_s[0]-(_s[1]/T)));;
-    }
-
-    std::string getClassName() const { return "SurfaceTension"; }
-
-private:
-  std::vector<double> _s = this->getRelatedObject<Vector>()[0]->getRelatedObject<Vector>()[0]->data;
+    std::string getClassName() const { return "SaturationPressure"; }
 };
 
 class KnowledgeGenerator : virtual public Perspective {
@@ -278,30 +274,6 @@ public:
 
     virtual void run() = 0;
 };
-
-class STModel : public SoftwareModel {
-
-    double impl(double T)
-    {
-        double s[] = {1.1,2.3,50};
-        return (s[0] - (s[1]*(T - s[2])));
-    }
-
-public:
-    std::string getClassName() const { return "STModel"; }
-
-    void run() {
-
-        double T = this->getRelatedObject<Temperature>()[0]
-                       ->getRelatedObject<Scalar>()[0]
-                       ->data;
-
-        this->getRelatedObject<SurfaceTension>()[0]
-            ->getRelatedObject<Scalar>()[0]
-            ->data = impl(T);
-    }
-};
-
 
 class MathematicalModel : public Model {
 public:
@@ -387,9 +359,6 @@ class HomonuclearMolecule : public PolyatomicEntity {
 public:
     std::string getClassName() const { return "HomonuclearMolecule"; }
 };
-
-
-
 
 #include "thing.cpp"
 
