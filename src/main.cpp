@@ -3,13 +3,13 @@
 
 #include "ontodome.h"
 #include "base/thing.h"
-#include "models/gasmodels/gasmodel.h"
+/*#include "models/gasmodels/gasmodel.h"
 #include "models/gasmodels/gasmodelcv.h"
 #include "models/nanomodels/nucleation/cnt.h"
 #include "models/nanomodels/moments/momentmodelpratsinis.h"
 #include "models/statemodels/stateinterpolator.h"
 
-void MomentsRun(GasModel* gm, GasMixture* GP, ClassicalNucleationTheory* cnt, MomentModelPratsinis* mm) {
+/*void MomentsRun(GasModel* gm, GasMixture* GP, ClassicalNucleationTheory* cnt, MomentModelPratsinis* mm) {
 
   // Condensing species datas
   // Get the initial state of the domain
@@ -85,7 +85,7 @@ void MomentsRun(GasModel* gm, GasMixture* GP, ClassicalNucleationTheory* cnt, Mo
 
   // add the final state of GasMixutre
   gm->add_temporal_state(GP,t);
-}
+}*/
 
 int main()
 {
@@ -157,7 +157,7 @@ int main()
     He.createRelationTo<hasProperty,SaturationPressure>(&psathe);
     He.createRelationTo<hasProperty,SurfaceTension>(&stenhe);
 
-    GasMixture gp;
+ /*   GasMixture gp;
     Pressure p(new Scalar(101325.), new Unit("Pa"));
     Temperature T(new Scalar(T_start), new Unit("K"));
     PressureTimeDerivative dpdt(new Scalar(0.), new Unit("Pa/s"));
@@ -185,5 +185,5 @@ int main()
     clock.stop();
     std::cout << "Execution time: " << clock.interval() << " s" << std::endl;
 
-    return 0;
+    return 0;*/
 }

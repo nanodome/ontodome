@@ -55,6 +55,27 @@ public:
     std::string getRelationName() const { return "hasProperPart"; }
 };
 
+class hasTemporalPart : public hasProperPart {
+public:
+    hasTemporalPart(Thing* _o0, Thing* _o1) : hasProperPart(_o0,_o1) {}
+
+    virtual std::string getRelationName() const { return "hasTemporalPart"; }
+};
+
+class hasTemporalDirectPart : public hasTemporalPart {
+public:
+    hasTemporalDirectPart(Thing* _o0, Thing* _o1) : hasTemporalPart(_o0,_o1) {}
+
+    virtual std::string getRelationName() const { return "hasTemporalDirectPart"; }
+};
+
+class hasSpatialPart : public hasProperPart {
+public:
+    hasSpatialPart(Thing* _o0, Thing* _o1) : hasProperPart(_o0,_o1) {}
+
+    virtual std::string getRelationName() const { return "hasSpatialPart"; }
+};
+
 class hasConnection : public Relation {
 public:
   hasConnection(Thing* _o0, Thing* _o1) : Relation(_o0,_o1) {}

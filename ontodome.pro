@@ -14,11 +14,11 @@ SOURCES += \
 HEADERS += \
 		src/base/relation.h \
 		src/base/thing.h \
-		src/models/gasmodels/gasmodel.h \
-		src/models/gasmodels/gasmodelcv.h \
-		src/models/nanomodels/moments/momentmodelpratsinis.h \
-		src/models/nanomodels/nucleation/cnt.h \
-	src/models/statemodels/stateinterpolator.h \
+#		src/models/gasmodels/gasmodel.h \
+        #src/models/gasmodels/gasmodelcv.h \
+        #src/models/nanomodels/moments/momentmodelpratsinis.h \
+        #src/models/nanomodels/nucleation/cnt.h \
+        #src/models/statemodels/stateinterpolator.h \
 		src/ontodome.h \
 		src/tools/clock.h \
 #		src/tools/rkf45.h \

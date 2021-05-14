@@ -236,14 +236,10 @@ public:
     std::string getClassName() const { return "VectorQuantity"; }
 };
 
-class SurfaceTension : public VectorQuantity
+class SurfaceTension : public ScalarQuantity
 {
 public:
-    SurfaceTension(Vector* _s, Unit* _u) : VectorQuantity(_s,_u) {}
-
-    double get_s_ten(double T) {
-      return (_s[0] - (_s[1]*(T - _s[2])));
-    }
+    SurfaceTension(Scalar* _s, Unit* _u) : ScalarQuantity(_s,_u) {}
 
     std::string getClassName() const { return "SurfaceTension"; }
 
@@ -266,26 +262,53 @@ private:
   std::vector<double> _s = this->getRelatedObject<Vector>()[0]->getRelatedObject<Vector>()[0]->data;
 };
 
-class Model : public Perspective {
+class KnowledgeGenerator : virtual public Perspective {
+public:
+    std::string getClassName() const { return "KnowledgeGenerator"; }
+};
+
+class Model : virtual public Perspective {
 public:
     std::string getClassName() const { return "Model"; }
+};
 
-    auto isModel() {
-      std::vector<std::string> modeled;
-      for (auto i : this->getRelation<isModelFor>())
-        modeled.push_back(i->getRange()->getClassName());
-      return modeled;
+class SoftwareModel : public Model, public KnowledgeGenerator {
+public:
+    std::string getClassName() const { return "SoftwareModel"; }
+
+    virtual void run() = 0;
+};
+
+class STModel : public SoftwareModel {
+
+    double impl(double T)
+    {
+        double s[] = {1.1,2.3,50};
+        return (s[0] - (s[1]*(T - s[2])));
     }
 
-    auto requiredModels() {
-      std::vector<std::string> modeled;
-      for (auto i : this->getRelation<requiresModelFor>())
-        modeled.push_back(i->getRange()->getClassName());
-      return modeled;
+public:
+    std::string getClassName() const { return "STModel"; }
+
+    void run() {
+
+        double T = this->getRelatedObject<Temperature>()[0]
+                       ->getRelatedObject<Scalar>()[0]
+                       ->data;
+
+        this->getRelatedObject<SurfaceTension>()[0]
+            ->getRelatedObject<Scalar>()[0]
+            ->data = impl(T);
     }
 };
 
-class PhysicsBasedModel : public Model {
+
+class MathematicalModel : public Model {
+public:
+    std::string getClassName() const { return "MathematicalModel"; }
+};
+
+class PhysicsBasedModel : public MathematicalModel {
 public:
     std::string getClassName() const { return "PhysicsBasedModel"; }
 };
@@ -300,32 +323,24 @@ public:
     std::string getClassName() const { return "MesoscopicModel"; }
 };
 
+class Reductionistic : public Perspective {
+public:
+    std::string getClassName() const { return "Reductionistic"; }
+};
+
+class Existent : public Reductionistic {
+public:
+    std::string getClassName() const { return "Existent"; }
+};
+
+class State : public Existent {
+public:
+    std::string getClassName() const { return "State"; }
+};
+
 class Matter : public Perspective {
 public:
-    std::map<double,Matter*> states;
-
     std::string getClassName() const { return "Matter"; }
-
-    void push_state(Matter* state,double time) {
-      states.insert(std::pair<double,Matter*>(time,state));
-    }
-
-    auto get_State(double time) {
-      return states.at(time);
-    }
-
-    template <class relation, class entity> void initialize (std::vector<entity*> ents) {
-      if (!states.count(0.)) {
-        states.insert(std::pair<double,Matter*>(0.,new Matter));
-        for (auto i : ents) {
-          states.at(0.)->createRelationTo<relation,entity>(i);
-        }
-      } else {
-        for (auto i : ents) {
-          states.at(0.)->createRelationTo<relation,entity>(i);
-        }
-      }
-    }
 };
 
 class Continuum : public Matter {
@@ -372,6 +387,9 @@ class HomonuclearMolecule : public PolyatomicEntity {
 public:
     std::string getClassName() const { return "HomonuclearMolecule"; }
 };
+
+
+
 
 #include "thing.cpp"
 
