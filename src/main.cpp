@@ -7,6 +7,7 @@
 #include "models/gasmodels/gasmodelcv.h"
 #include "models/nanomodels/nucleation/cnt.h"
 #include "models/nanomodels/moments/momentmodelpratsinis.h"
+#include "models/statemodels/interpolator.h"
 
 void MomentsRun(GasModel* gm, GasMixture* GP, ClassicalNucleationTheory* cnt, MomentModelPratsinis* mm) {
 
@@ -33,6 +34,8 @@ void MomentsRun(GasModel* gm, GasMixture* GP, ClassicalNucleationTheory* cnt, Mo
   int iter = 0;
 
   const int PRINT_EVERY = 1000;
+  const double SAVE_STATE_EVERY = 5e-3;
+  double last_save = 0;
 
   // loop over timesteps until the final temperature
   while(t <= t_end) {
@@ -71,8 +74,16 @@ void MomentsRun(GasModel* gm, GasMixture* GP, ClassicalNucleationTheory* cnt, Mo
               << "M2_" << spec_name << "= " << mm->get_M2() << '\t'
               << std::endl << std::endl;
       }
+
+      // Save the GasMixture state every SAVE_STATE_EVERY [s]
+      if ((t-last_save) > SAVE_STATE_EVERY) {
+        gm->add_temporal_state(GP,t);
+        last_save = t;
+      }
   }
-  gm->finalize(GP,t);
+
+  // add the final state of GasMixutre
+  gm->add_temporal_state(GP,t);
 }
 
 int main()
@@ -163,6 +174,12 @@ int main()
     MomentModelPratsinis mm;
 
     MomentsRun(&gm, &gp, &cnt, &mm);
+
+    Interpolator interp;
+
+    auto test = interp.intepolate_state(&gp,0.00025);
+    std::cout << "Interpolated temperature is: " << test->getRelatedObject<Temperature>()[0]->getRelatedObject<Scalar>()[0]->data << std::endl;
+    std::cout << "Interpolated pressure is: " << test->getRelatedObject<Pressure>()[0]->getRelatedObject<Scalar>()[0]->data << std::endl;
 
     clock.stop();
     std::cout << "Execution time: " << clock.interval() << " s" << std::endl;

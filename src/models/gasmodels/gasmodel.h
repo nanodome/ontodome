@@ -103,16 +103,21 @@ public:
     }
 
     /// Push final state to GasMixture
-    void finalize(Matter* gp,double time) {
+    void add_temporal_state(Matter* gp,double time) {
       //create the state to push
       auto state = new Matter;
 
+      //add the current GasMixture thermodynamic state
       state->createRelationsTo<hasProperty,Quantity>({
         new Pressure (new Scalar(p), new Unit("Pa")),
         new Temperature (new Scalar(T), new Unit("K")),
         new PressureTimeDerivative (new Scalar(dpdt), new Unit("Pa/s")),
         new TemperatureTimeDerivative (new Scalar(dTdt), new Unit("K/s"))});
 
+      //update and add the current species state
+      for (auto i : specs) {
+          update<MolarFraction,Matter>(i,w[hash.at(i->getUuid())]);
+      }
       state->createRelationsTo<hasPart,PolyatomicEntity>(specs);
 
       //push the state to GasMixture

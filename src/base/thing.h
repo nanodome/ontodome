@@ -41,15 +41,6 @@ public:
       }
     }
 
-    template<class T, class T0, class IN>
-    void createRelationToIn(IN* in,T0* o1) {
-
-        T* r = new T(in,o1);
-
-        in->addRelation(r);
-        o1->addRelation(r);
-    }
-
     // find a relation of a specific type
     // TODO: optimize search using multimap<std::string,Relation*>,
     //       getClassName() function for the key and a static_cast<T*>
@@ -310,10 +301,9 @@ public:
 };
 
 class Matter : public Perspective {
-private:
-      std::map<double,Matter*> states;
-
 public:
+    std::map<double,Matter*> states;
+
     std::string getClassName() const { return "Matter"; }
 
     void push_state(Matter* state,double time) {
@@ -328,11 +318,11 @@ public:
       if (!states.count(0.)) {
         states.insert(std::pair<double,Matter*>(0.,new Matter));
         for (auto i : ents) {
-          createRelationToIn<relation,entity,Matter>(states.at(0.),i);
+          states.at(0.)->createRelationTo<relation,entity>(i);
         }
       } else {
         for (auto i : ents) {
-          createRelationToIn<relation,entity,Matter>(states.at(0.),i);
+          states.at(0.)->createRelationTo<relation,entity>(i);
         }
       }
     }

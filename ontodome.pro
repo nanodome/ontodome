@@ -1,5 +1,5 @@
 TEMPLATE = app
-CONFIG += console c++17
+CONFIG += console c++20
 CONFIG -= app_bundle
 CONFIG -= qt
 
@@ -18,6 +18,7 @@ HEADERS += \
 		src/models/gasmodels/gasmodelcv.h \
 		src/models/nanomodels/moments/momentmodelpratsinis.h \
 		src/models/nanomodels/nucleation/cnt.h \
+	src/models/statemodels/interpolator.h \
 		src/ontodome.h \
 		src/tools/clock.h \
 #		src/tools/rkf45.h \

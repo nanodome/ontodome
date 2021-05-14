@@ -34,7 +34,7 @@
 //#include "dynamicparticle.h"
 
 
-/// Simple function for triggering an output
+/// Simple function for triggering an output based on iterations number
 bool counter_trigger(std::size_t iter, std::size_t every_n_iter);
 
 //template<class dataType>std::string V_To_S(std::vector<dataType> vect) {
