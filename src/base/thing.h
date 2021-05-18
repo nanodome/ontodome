@@ -10,12 +10,11 @@
 #include "datatypes.h"
 
 class Thing : public BaseClass {
-//class Thing {
 
     // dynamic relations
     std::vector<Relation*> relations;
-public:
 
+public:
     virtual std::string getClassName() const { return "Thing"; }
 
     // populate with relations
@@ -46,6 +45,9 @@ public:
     //       getClassName() function for the key and a static_cast<T*>
     template<class T>
     std::vector<T*> getRelations();
+
+    template<class T>
+    T* getLastRelation();
 
     template<class T>
     std::vector<T*> getRelatedObjects();
@@ -143,8 +145,7 @@ class ScalarQuantity : public Quantity
 public:
     ScalarQuantity(Scalar* _s, Unit* _u)
     {
-        createRelationTo<hasPart,Thing>(_u);
-        createRelationTo<hasPart,Thing>(_s);
+        createRelationsTo<hasPart,Thing>({_u,_s});
     }
 
     std::string getClassName() const { return "ScalarQuantity"; }
@@ -235,8 +236,7 @@ class VectorQuantity : public Quantity
 public:
     VectorQuantity(Vector* _s, Unit* _u)
     {
-        createRelationTo<hasPart,Thing>(_u);
-        createRelationTo<hasPart,Thing>(_s);
+        createRelationsTo<hasPart,Thing>({_u,_s});
     }
 
     std::string getClassName() const { return "VectorQuantity"; }
@@ -271,8 +271,6 @@ public:
 class SoftwareModel : public Model, public KnowledgeGenerator {
 public:
     std::string getClassName() const { return "SoftwareModel"; }
-
-    virtual void run() = 0;
 };
 
 class MathematicalModel : public Model {
@@ -358,6 +356,13 @@ public:
 class HomonuclearMolecule : public PolyatomicEntity {
 public:
     std::string getClassName() const { return "HomonuclearMolecule"; }
+};
+
+class Time : public ScalarQuantity {
+public:
+    Time(Scalar* _s, Unit* _u) : ScalarQuantity(_s,_u) {}
+
+    std::string getClassName() const { return "Time"; }
 };
 
 #include "thing.cpp"

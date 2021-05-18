@@ -25,7 +25,7 @@
 #include <list>
 #include <vector>
 #include <string>
-
+#include <filesystem>
 
 // useful constants
 #define K_BOL 1.380650524e-23    // [J/K]
@@ -91,5 +91,7 @@ typedef struct raw_c_data {
 
 #include "tools/clock.h"
 #include "tools/utilities.h"
+#include "base/thing.h"
+#include "models/knowledgegenerators.h"
 
 #endif // ONTODOME

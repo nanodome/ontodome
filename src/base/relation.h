@@ -11,6 +11,7 @@ class Thing;
 class Relation : public BaseClass {
     Thing *o0;
     Thing *o1;
+
 public:
     Relation(Thing* _o0, Thing* _o1)
         : o0(_o0), o1(_o1) {}
@@ -106,7 +107,6 @@ public:
 
   std::string getRelationName() const { return "hasScalarProperty"; }
 };
-
 
 
 // Relation based functions

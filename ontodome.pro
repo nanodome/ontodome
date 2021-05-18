@@ -19,8 +19,9 @@ HEADERS += \
 	#src/models/nanomodels/moments/momentmodelpratsinis.h \
 	#src/models/nanomodels/nucleation/cnt.h \
 	#src/models/statemodels/stateinterpolator.h \
-	src/models/saturationpressure/saturationpressuremodel.h \
-	src/models/surfacetension/surfacetensionmodel.h \
+	src/models/knowledgegenerators.h \
+	src/models/saturationpressuremodels/saturationpressuremodel.h \
+	src/models/surfacetensionmodels/surfacetensionmodel.h \
 	src/ontodome.h \
 	src/tools/clock.h \
 #		src/tools/rkf45.h \

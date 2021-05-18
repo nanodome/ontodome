@@ -15,6 +15,20 @@ std::vector<T*> Thing::getRelations()
 }
 
 template<class T>
+T* Thing::getLastRelation()
+{
+   T* rel;
+
+   for(auto i: relations) {
+      if(T* r0 = dynamic_cast<T*>(i)) {
+        rel = r0;
+      }
+   }
+
+   return rel;
+}
+
+template<class T>
 std::vector<T*> Thing::getRelatedObjects()
 {
    std::vector<T*> objs;

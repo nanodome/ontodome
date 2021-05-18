@@ -1,15 +1,8 @@
 #include <iostream>
 #include <vector>
+#include <algorithm>
 
 #include "ontodome.h"
-#include "base/thing.h"
-#include "models/surfacetension/surfacetensionmodel.h"
-#include "models/saturationpressure/saturationpressuremodel.h"
-//#include "models/gasmodels/gasmodel.h"
-//#include "models/gasmodels/gasmodelcv.h"
-//#include "models/nanomodels/nucleation/cnt.h"
-//#include "models/nanomodels/moments/momentmodelpratsinis.h"
-//#include "models/statemodels/stateinterpolator.h"
 
 //void MomentsRun(GasModel* gm, GasMixture* GP, ClassicalNucleationTheory* cnt, MomentModelPratsinis* mm) {
 
@@ -95,89 +88,143 @@ int main()
 	clock.start();
 
 	double ww = 0.0005;
-	double T_start = 800.;
-	Temperature T(new Scalar(T_start), new Unit("K"));
 
-	HomonuclearMolecule Si;
-	MolarFraction msi(new Scalar(ww), new Unit("#"));
-	IUPAC si("Si");
-	Mass masi(new Scalar(28.085*AMU), new Unit("kg"));
-	Viscosity musi(new Scalar(7e-5), new Unit("Pa s"));
-	BulkDensityLiquid bdlsi(new Scalar(2570.), new Unit("kg/m3"));
-	BulkDensitySolid bdssi(new Scalar(2329.), new Unit("kg/m3"));
-	MeltingPoint mpsi(new Scalar(1687.), new Unit("K"));
-	SaturationPressure psatsi(new Scalar(0.), new Unit("Pa"));
-	SurfaceTension stensi(new Scalar(0.), new Unit("N/m"));
+        HomonuclearMolecule Si;
+        MolarFraction msi(new Scalar(ww), new Unit("#"));
+        IUPAC si("Si");
+        Mass masi(new Scalar(28.085*AMU), new Unit("kg"));
+        Viscosity musi(new Scalar(7e-5), new Unit("Pa s"));
+        BulkDensityLiquid bdlsi(new Scalar(2570.), new Unit("kg/m3"));
+        BulkDensitySolid bdssi(new Scalar(2329.), new Unit("kg/m3"));
+        MeltingPoint mpsi(new Scalar(1687.), new Unit("K"));
+        SaturationPressure psatsi(new Scalar(0.), new Unit("Pa"));
+        SurfaceTension stensi(new Scalar(0.), new Unit("N/m"));
 
-	Si.createRelationsTo<hasProperty,Thing>({&msi,&si,&masi,&musi,&bdlsi,&bdssi,&mpsi,&psatsi,&stensi,&T});
+        Si.createRelationsTo<hasProperty,Thing>({&msi,&si,&masi,&musi,&bdlsi,&bdssi,&mpsi,&psatsi,&stensi});
 
-	SaturationPressureModel sipsat({7.5341,23399.});
-	psatsi.createRelationTo<hasModel,SaturationPressureModel>(&sipsat);
+        SaturationPressureModel sipsat({7.5341,23399.});
+        psatsi.createRelationTo<hasModel,SaturationPressureModel>(&sipsat);
 
-	SurfaceTensionModel sisten({0.732,0.000086,1685.});
-	stensi.createRelationTo<hasModel,SurfaceTensionModel>(&sisten);
+        SurfaceTensionModel sisten({0.732,0.000086,1685.});
+        stensi.createRelationTo<hasModel,SurfaceTensionModel>(&sisten);
 
-	HeteronuclearMolecule CH4;
-	MolarFraction mch4(new Scalar((1-ww)*0.025), new Unit("#"));
-	IUPAC ch4("CH4");
-	Mass mach4(new Scalar(16.04*AMU), new Unit("kg"));
-	Viscosity much4(new Scalar(5e-5), new Unit("Pa s"));
-	SaturationPressure psatch4(new Scalar(0),new Unit("Pa"));
-	SurfaceTension stench4(new Scalar(0),new Unit("N/m"));
+        HeteronuclearMolecule CH4;
+        MolarFraction mch4(new Scalar((1-ww)*0.025), new Unit("#"));
+        IUPAC ch4("CH4");
+        Mass mach4(new Scalar(16.04*AMU), new Unit("kg"));
+        Viscosity much4(new Scalar(5e-5), new Unit("Pa s"));
+        SaturationPressure psatch4(new Scalar(0),new Unit("Pa"));
+        SurfaceTension stench4(new Scalar(0),new Unit("N/m"));
 
-	CH4.createRelationsTo<hasProperty,Thing>({&mch4,&ch4,&mach4,&much4,&psatch4,&stench4});
+        CH4.createRelationsTo<hasProperty,Thing>({&mch4,&ch4,&mach4,&much4,&psatch4,&stench4});
 
-	HomonuclearMolecule H;
-	MolarFraction mh(new Scalar((1-ww)*0.025), new Unit("#"));
-	IUPAC h("H");
-	Mass mah(new Scalar(1.0006*AMU), new Unit("kg"));
-	Viscosity muh(new Scalar(5e-5), new Unit("Pa s"));
-	SaturationPressure psath(new Scalar(0),new Unit("Pa"));
-	SurfaceTension stenh(new Scalar(0),new Unit("N/m"));
+        HomonuclearMolecule H;
+        MolarFraction mh(new Scalar((1-ww)*0.025), new Unit("#"));
+        IUPAC h("H");
+        Mass mah(new Scalar(1.0006*AMU), new Unit("kg"));
+        Viscosity muh(new Scalar(5e-5), new Unit("Pa s"));
+        SaturationPressure psath(new Scalar(0),new Unit("Pa"));
+        SurfaceTension stenh(new Scalar(0),new Unit("N/m"));
 
-	H.createRelationsTo<hasProperty,Thing>({&mh,&h,&mah,&muh,&psath,&stenh});
+        H.createRelationsTo<hasProperty,Thing>({&mh,&h,&mah,&muh,&psath,&stenh});
 
-	HomonuclearMolecule He;
-	MolarFraction mhe(new Scalar((1-ww)*0.95), new Unit("#"));
-	IUPAC he("He");
-	Mass mahe(new Scalar(4.002602*AMU), new Unit("kg"));
-	Viscosity muhe(new Scalar(5e-5), new Unit("Pa s"));
-	SaturationPressure psathe(new Scalar(0),new Unit("Pa"));
-	SurfaceTension stenhe(new Scalar(0),new Unit("N/m"));
+        HomonuclearMolecule He;
+        MolarFraction mhe(new Scalar((1-ww)*0.95), new Unit("#"));
+        IUPAC he("He");
+        Mass mahe(new Scalar(4.002602*AMU), new Unit("kg"));
+        Viscosity muhe(new Scalar(5e-5), new Unit("Pa s"));
+        SaturationPressure psathe(new Scalar(0),new Unit("Pa"));
+        SurfaceTension stenhe(new Scalar(0),new Unit("N/m"));
 
-	He.createRelationsTo<hasProperty,Thing>({&mhe,&he,&mahe,&muhe,&psathe,&stenhe});
+        He.createRelationsTo<hasProperty,Thing>({&mhe,&he,&mahe,&muhe,&psathe,&stenhe});
 
- /*   GasMixture gp;
-	Pressure p(new Scalar(101325.), new Unit("Pa"));
-	Temperature T(new Scalar(T_start), new Unit("K"));
-	PressureTimeDerivative dpdt(new Scalar(0.), new Unit("Pa/s"));
-	TemperatureTimeDerivative dTdt(new Scalar(-1e+5), new Unit("K/s"));
+        GasMixture gp;
 
-	gp.initialize<hasProperty,Quantity>({&p,&T,&dpdt,&dTdt});
-	gp.initialize<hasPart,PolyatomicEntity>({&Si,&He,&CH4,&H});
+	GasMixture gp0;
+	Pressure p0(new Scalar(101325.), new Unit("Pa"));
+	Temperature T0(new Scalar(1700), new Unit("K"));
+	PressureTimeDerivative dpdt0(new Scalar(0.), new Unit("Pa/s"));
+	TemperatureTimeDerivative dTdt0(new Scalar(-1e+5), new Unit("K/s"));
+	Time t0(new Scalar(0.), new Unit("s"));
 
-	GasModel gm;
-//    GasModelCV gm;
-//    auto models = gm.isModel();
+	gp0.createRelationsTo<hasProperty,Thing>({&p0,&T0,&dpdt0,&dTdt0,&t0});
+	gp0.createRelationsTo<hasPart,Thing>({&Si,&He,&CH4,&H});
+	gp.createRelationTo<hasTemporalDirectPart,Thing>(&gp0);
 
-	ClassicalNucleationTheory cnt;
+        HomonuclearMolecule Si1;
+        MolarFraction msi1(new Scalar(ww), new Unit("#"));
+        IUPAC si1("Si");
+        Mass masi1(new Scalar(28.085*AMU), new Unit("kg"));
+        Viscosity musi1(new Scalar(7e-5), new Unit("Pa s"));
+        BulkDensityLiquid bdlsi1(new Scalar(2570.), new Unit("kg/m3"));
+        BulkDensitySolid bdssi1(new Scalar(2329.), new Unit("kg/m3"));
+        MeltingPoint mpsi1(new Scalar(1687.), new Unit("K"));
+        SaturationPressure psatsi1(new Scalar(0.), new Unit("Pa"));
+        SurfaceTension stensi1(new Scalar(0.), new Unit("N/m"));
 
-	MomentModelPratsinis mm;
+        Si1.createRelationsTo<hasProperty,Thing>({&msi1,&si1,&masi1,&musi1,&bdlsi1,&bdssi1,&mpsi1,&psatsi1,&stensi1});
 
-	MomentsRun(&gm, &gp, &cnt, &mm);
+        SaturationPressureModel sipsat1({7.5341,23399.});
+        psatsi1.createRelationTo<hasModel,SaturationPressureModel>(&sipsat1);
 
-	StateInterpolator interp;
+        SurfaceTensionModel sisten1({0.732,0.000086,1685.});
+        stensi1.createRelationTo<hasModel,SurfaceTensionModel>(&sisten1);
 
-	auto test = interp.intepolate_state(&gp,0.0124);
-	std::cout << "Interpolated temperature is: " << test->getRelatedObject<Temperature>()[0]->getRelatedObject<Scalar>()[0]->data << std::endl;
-	std::cout << "Interpolated pressure is: " << test->getRelatedObject<Pressure>()[0]->getRelatedObject<Scalar>()[0]->data << std::endl;
-*/
+        HeteronuclearMolecule CH41;
+        MolarFraction mch41(new Scalar((1-ww)*0.025), new Unit("#"));
+        IUPAC ch41("CH4");
+        Mass mach41(new Scalar(16.04*AMU), new Unit("kg"));
+        Viscosity much41(new Scalar(5e-5), new Unit("Pa s"));
+        SaturationPressure psatch41(new Scalar(0),new Unit("Pa"));
+        SurfaceTension stench41(new Scalar(0),new Unit("N/m"));
 
-	psatsi.getRelatedObjects<SaturationPressureModel>()[0]->run();
-	std::cout << "SaturationPressure at T = " << Si.getRelatedScalarObjects<Temperature>()[0] << " is: " << Si.getRelatedScalarObjects<SaturationPressure>()[0] << std::endl;
+        CH41.createRelationsTo<hasProperty,Thing>({&mch41,&ch41,&mach41,&much41,&psatch41,&stench41});
 
-	stensi.getRelatedObjects<SurfaceTensionModel>()[0]->run();
-	std::cout << "SurfaceTension at T = " << Si.getRelatedScalarObjects<Temperature>()[0] << " is: " << Si.getRelatedScalarObjects<SurfaceTension>()[0] << std::endl;
+        HomonuclearMolecule H1;
+        MolarFraction mh1(new Scalar((1-ww)*0.025), new Unit("#"));
+        IUPAC h1("H");
+        Mass mah1(new Scalar(1.0006*AMU), new Unit("kg"));
+        Viscosity muh1(new Scalar(5e-5), new Unit("Pa s"));
+        SaturationPressure psath1(new Scalar(0),new Unit("Pa"));
+        SurfaceTension stenh1(new Scalar(0),new Unit("N/m"));
+
+        H1.createRelationsTo<hasProperty,Thing>({&mh1,&h1,&mah1,&muh1,&psath1,&stenh1});
+
+        HomonuclearMolecule He1;
+        MolarFraction mhe1(new Scalar((1-ww)*0.95), new Unit("#"));
+        IUPAC he1("He");
+        Mass mahe1(new Scalar(4.002602*AMU), new Unit("kg"));
+        Viscosity muhe1(new Scalar(5e-5), new Unit("Pa s"));
+        SaturationPressure psathe1(new Scalar(0),new Unit("Pa"));
+        SurfaceTension stenhe1(new Scalar(0),new Unit("N/m"));
+
+        He1.createRelationsTo<hasProperty,Thing>({&mhe1,&he1,&mahe1,&muhe1,&psathe1,&stenhe1});
+
+	GasMixture gp1;
+	Pressure p1(new Scalar(101325.), new Unit("Pa"));
+	Temperature T1(new Scalar(1200), new Unit("K"));
+	PressureTimeDerivative dpdt1(new Scalar(0.), new Unit("Pa/s"));
+	TemperatureTimeDerivative dTdt1(new Scalar(-1e+5), new Unit("K/s"));
+	Time t1(new Scalar(0.1), new Unit("s"));
+
+	gp1.createRelationsTo<hasProperty,Thing>({&p1,&T1,&dpdt1,&dTdt1,&t1});
+	gp1.createRelationsTo<hasPart,Thing>({&Si1,&He1,&CH41,&H1});
+	gp.createRelationTo<hasTemporalDirectPart,Thing>(&gp1);
+
+	// SaturationPressure and SurfaceTension models tests
+	double TT = gp.getLastRelation<hasTemporalDirectPart>()->getRange()->getRelatedScalarObjects<Temperature>()[0];
+
+	auto sat = Si1.getRelatedObjects<SaturationPressure>()[0];
+	sat->getRelatedObjects<SaturationPressureModel>()[0]->run(TT);
+	std::cout << "SaturationPressure at T = " << TT << " is: " << Si1.getRelatedScalarObjects<SaturationPressure>()[0] << std::endl;
+
+	auto sten = Si1.getRelatedObjects<SurfaceTension>()[0];
+	sten->getRelatedObjects<SurfaceTensionModel>()[0]->run(TT);
+	std::cout << "SurfaceTension at T = " << TT << " is: " << Si1.getRelatedScalarObjects<SurfaceTension>()[0] << std::endl;
+
+	// KGDB
+	KnowledgeGeneratorsDB kgdb;
+	auto test = kgdb.ismodelfor("GasMixture");
 
 	clock.stop();
 	std::cout << "Execution time: " << clock.interval() << " s" << std::endl;

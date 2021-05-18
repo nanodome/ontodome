@@ -34,9 +34,6 @@
 class GasModel  : public ContinuumModel {
 
 protected:
-    std::map<boost::uuids::uuid,std::size_t> hash; ///< Hash map for name-to-index resolution
-
-public:
     double p; ///< Gas phase pressure [Pa]
     double T; ///< Gas phase temperature [K]
     double dpdt; ///< Gas phase pressure time derivative [Pa/s]
@@ -44,6 +41,9 @@ public:
     double gamma; ///< expansion coefficient [1/s]
     std::vector<PolyatomicEntity*> specs; ///< vector containing all the species
     std::valarray<double> w; ///< Species molar fractions
+    std::map<boost::uuids::uuid,std::size_t> hash; ///< Hash map for name-to-index resolution
+
+public:
 
     GasModel()
     {
@@ -57,7 +57,7 @@ public:
     /// Run the model
     void initialize(Matter* gp) {
       // Get the GasMixture conditions
-      specs = gp->getRelatedObject<PolyatomicEntity>();
+      specs = gp->getRelatedObjects<PolyatomicEntity>();
       p = get<Pressure,Matter>(gp);
       dpdt = get<PressureTimeDerivative,Matter>(gp);
       T = get<Temperature,Matter>(gp);
@@ -103,27 +103,27 @@ public:
       w = ns/n;
     }
 
-    /// Push final state to GasMixture
-    void add_temporal_state(Matter* gp,double time) {
-      //create the state to push
-      auto state = new Matter;
+//    /// Push final state to GasMixture
+//    void add_temporal_state(Matter* gp,double time) {
+//      //create the state to push
+//      auto state = new Matter;
 
-      //add the current GasMixture thermodynamic state
-      state->createRelationsTo<hasProperty,Quantity>({
-        new Pressure (new Scalar(p), new Unit("Pa")),
-        new Temperature (new Scalar(T), new Unit("K")),
-        new PressureTimeDerivative (new Scalar(dpdt), new Unit("Pa/s")),
-        new TemperatureTimeDerivative (new Scalar(dTdt), new Unit("K/s"))});
+//      //add the current GasMixture thermodynamic state
+//      state->createRelationsTo<hasProperty,Quantity>({
+//        new Pressure (new Scalar(p), new Unit("Pa")),
+//        new Temperature (new Scalar(T), new Unit("K")),
+//        new PressureTimeDerivative (new Scalar(dpdt), new Unit("Pa/s")),
+//        new TemperatureTimeDerivative (new Scalar(dTdt), new Unit("K/s"))});
 
-      //update and add the current species state
-      for (auto i : specs) {
-          update<MolarFraction,Matter>(i,w[hash.at(i->getUuid())]);
-      }
-      state->createRelationsTo<hasPart,PolyatomicEntity>(specs);
+//      //update and add the current species state
+//      for (auto i : specs) {
+//          update<MolarFraction,Matter>(i,w[hash.at(i->getUuid())]);
+//      }
+//      state->createRelationsTo<hasPart,PolyatomicEntity>(specs);
 
-      //push the state to GasMixture
-      gp->push_state(state,time);
-    }
+//      //push the state to GasMixture
+//      gp->push_state(state,time);
+//    }
 
     /// Get gas phase molar fractions
     std::valarray<double> get_molar_fractions()
@@ -133,7 +133,7 @@ public:
           w.resize(specs.size());
           for (std::size_t i = 0; i < specs.size(); ++i)
           {
-            w[i] = specs[i]->getRelatedObject<MolarFraction>()[0]->getRelatedObject<Scalar>()[0]->data;
+            w[i] = specs[i]->getRelatedObjects<MolarFraction>()[0]->getRelatedObjects<Scalar>()[0]->data;
           }
           return w;
       }
@@ -144,7 +144,7 @@ public:
     template <class T, class OBJ> double get(OBJ* obj) const
     {
       double val;
-      auto vals = obj-> template getRelatedObject<T>();
+      auto vals = obj-> template getRelatedObjects<T>();
       if (!vals.empty())
       {
           if (vals.size() > 1) {
@@ -152,7 +152,7 @@ public:
           }
           else
           {
-              val = vals[0]->template getRelatedObject<Scalar>()[0]->data;
+              val = vals[0]->template getRelatedObjects<Scalar>()[0]->data;
           }
           return val;
       }
@@ -162,7 +162,7 @@ public:
     /// Update gas phase properties
     template <class T, class OBJ> void update(OBJ* obj, double val) const
     {
-      auto vals = obj->template getRelatedObject<T>();
+      auto vals = obj->template getRelatedObjects<T>();
       if (!vals.empty())
       {
           if (vals.size() > 1) {
@@ -170,7 +170,7 @@ public:
           }
           else
           {
-              vals[0]->template getRelatedObject<Scalar>()[0]->data = val;
+              vals[0]->template getRelatedObjects<Scalar>()[0]->data = val;
           }
       }
       else { abort(); }
@@ -190,7 +190,7 @@ public:
       double visc = 0;
 
       for(size_t i=0; i<w.size(); ++i)
-       visc += specs[i]->getRelatedObject<Viscosity>()[0]->getRelatedObject<Scalar>()[0]->data * w[i];
+       visc += specs[i]->getRelatedObjects<Viscosity>()[0]->getRelatedObjects<Scalar>()[0]->data * w[i];
 
       return visc;
     }
@@ -224,7 +224,7 @@ public:
       double m = 0.;
 
       for(size_t i=0; i<w.size(); ++i)
-          m += specs[i]->getRelatedObject<Mass>()[0]->getRelatedObject<Scalar>()[0]->data * w[i];
+          m += specs[i]->getRelatedObjects<Mass>()[0]->getRelatedObjects<Scalar>()[0]->data * w[i];
 
       return m;
     }
@@ -238,7 +238,7 @@ public:
 
       for(size_t i=0; i<w.size(); ++i) {
 
-          double m_gas = specs[i]->getRelatedObject<Mass>()[0]->getRelatedObject<Scalar>()[0]->data;
+          double m_gas = specs[i]->getRelatedObjects<Mass>()[0]->getRelatedObjects<Scalar>()[0]->data;
 
           // n_s * m_s * sqrt(3*K_BOL*T/m_s);
           flux += w[i]*p/(K_BOL*T) * m_gas * sqrt(3*K_BOL*T/m_gas);
@@ -250,7 +250,7 @@ public:
     /// Print gas phase parameters
     void print() {
       for(auto& sp : specs)
-          std::cout << sp->getRelatedObject<IUPAC>()[0]->data << '\t';
+          std::cout << sp->getRelatedObjects<IUPAC>()[0]->data << '\t';
       std::cout << "Sum" << '\t';
       std::cout << std::endl;
 
