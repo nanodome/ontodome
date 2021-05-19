@@ -224,7 +224,12 @@ int main()
 
 	// KGDB
 	KnowledgeGeneratorsDB kgdb;
-	auto test = kgdb.ismodelfor("GasMixture");
+//	auto test = kgdb.ismodelfor("GasMixture");
+	auto test = kgdb.ismodelfor(new GasMixture);
+
+	std::cout << sisten.getLastRelation<isSoftwareModelFor>()->getRange()->getRelatedObjects<LatexExpression>()[0]->data << std::endl;
+
+	std::cout << sipsat.getLastRelation<isSoftwareModelFor>()->getRange()->getRelatedObjects<LatexExpression>()[0]->data << std::endl;
 
 	clock.stop();
 	std::cout << "Execution time: " << clock.interval() << " s" << std::endl;

@@ -18,8 +18,21 @@ public:
     virtual std::string getClassName() const { return "Thing"; }
 
     // populate with relations
-    void addRelation(Relation *t) { relations.push_back(t); }
+    void addRelation(Relation* t) { relations.push_back(t); }
 
+    // removes a relation
+    void removeRelation(Relation* r) {
+      int i = 0;
+      for (auto i : relations) {
+          if (r == i) {
+            break;
+          }
+        i += 1;
+      }
+      relations.erase(relations.begin()+i);
+    }
+
+    // Create a relation to this entity
     template<class T, class T0>
     void createRelationTo(T0* o1) {
 
@@ -29,6 +42,7 @@ public:
         o1->addRelation(r);
     }
 
+    // Creates multiple relations to this entity at once
     template<class T, class T0>
     void createRelationsTo(std::vector<T0*> o1) {
 
@@ -43,18 +57,22 @@ public:
     // find a relation of a specific type
     // TODO: optimize search using multimap<std::string,Relation*>,
     //       getClassName() function for the key and a static_cast<T*>
-    template<class T>
-    std::vector<T*> getRelations();
 
-    template<class T>
-    T* getLastRelation();
+    // Gets all the entities with given relation to this entity
+    template<class T> std::vector<T*> getRelations();
 
+    // Gets the last entity with given relation to this entity
+    template<class T> T* getLastRelation();
+
+    // Gets the all the entities with the specified class related to this entity
     template<class T>
     std::vector<T*> getRelatedObjects();
 
+    // Gets all the entities with given relation to the entity, but automatically return its scalar value
     template<class T>
     std::vector<double> getRelatedScalarObjects();
 
+    // Gets all the entities with given relation to the entity, but automatically return its vector value
     template<class T>
     std::vector<std::vector<double>> getRelatedVectorObjects();
 };
@@ -116,14 +134,20 @@ class IUPAC : public String
 {
 public:
     IUPAC(std::string _iupac) { data = _iupac; }
-
     std::string getClassName() const { return "IUPAC Name"; }
+};
+
+class LatexExpression : public String
+{
+public:
+  LatexExpression(std::string _expr) { data = _expr; }
+  std::string getClassName() const { return "LatexExpression"; }
 };
 
 class Unit : public String
 {
 public:
-    Unit(std::string s) {data = s;}
+    Unit(std::string _unit) {data = _unit;}
     std::string getClassName() const { return "Unit"; }
 };
 
@@ -275,21 +299,39 @@ public:
 
 class MathematicalModel : public Model {
 public:
+
+    MathematicalModel (std::string _expr) : Model() {
+
+    this->createRelationTo<hasProperty,LatexExpression>(new LatexExpression(_expr));
+    }
+
     std::string getClassName() const { return "MathematicalModel"; }
 };
 
 class PhysicsBasedModel : public MathematicalModel {
 public:
+    PhysicsBasedModel(std::string _expr) : MathematicalModel(_expr) {
+
+      this->createRelationTo<hasProperty,LatexExpression>(new LatexExpression(_expr));
+      }
     std::string getClassName() const { return "PhysicsBasedModel"; }
 };
 
 class ContinuumModel : public PhysicsBasedModel {
 public:
+    ContinuumModel(std::string _expr) : PhysicsBasedModel(_expr) {
+
+      this->createRelationTo<hasProperty,LatexExpression>(new LatexExpression(_expr));
+      }
     std::string getClassName() const { return "ContinuumModel"; }
 };
 
 class MesoscopicModel : public PhysicsBasedModel {
 public:
+    MesoscopicModel(std::string _expr) : PhysicsBasedModel(_expr) {
+
+      this->createRelationTo<hasProperty,LatexExpression>(new LatexExpression(_expr));
+      }
     std::string getClassName() const { return "MesoscopicModel"; }
 };
 

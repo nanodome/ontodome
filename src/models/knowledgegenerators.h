@@ -26,16 +26,16 @@ public:
   }
 
   // search for knowledge generators which are model for the given entity
-//  auto ismodelfor (Thing* criteria) {
-  auto ismodelfor (std::string criteria) {
+  auto ismodelfor (Thing* criteria) {
+//  auto ismodelfor (std::string criteria) {
     std::vector<std::string> champions;
 
     for (auto i : list) {
       auto mod_for = i->getRelations<isModelFor>();
       for (auto ii : mod_for) {
         auto modeled = ii->getRange()->getClassName();
-//        if (modeled == criteria->getClassName())  {
-        if (modeled == criteria)  {
+        if (modeled == criteria->getClassName())  {
+//        if (modeled == criteria)  {
           champions.push_back(i->getClassName());
         }
       }

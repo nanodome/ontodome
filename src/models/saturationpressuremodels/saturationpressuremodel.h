@@ -17,6 +17,12 @@ public:
     SaturationPressureModel() : SoftwareModel() {
       this->createRelationTo<isModelFor>(new GasMixture);
       this->createRelationTo<isModelFor>(new SaturationPressure(new Scalar(0), new Unit("dummy")));
+      this->createRelationTo<hasInput>(new Vector({0}));
+      this->createRelationTo<hasOutput>(new Scalar(0));
+
+      this->createRelationTo<isSoftwareModelFor,ContinuumModel>(new ContinuumModel(
+            "10^(a - b/T) \nwhere a and b are the coefficients and T is the temperature.")
+            );
     };
 
     // This model requires an initialization which is a vector containing the model's coefficients
@@ -27,6 +33,12 @@ public:
 
       this->createRelationTo<isModelFor>(new GasMixture);
       this->createRelationTo<isModelFor>(new SaturationPressure(new Scalar(0), new Unit("dummy")));
+      this->createRelationTo<hasInput>(new Vector({0}));
+      this->createRelationTo<hasOutput>(new Scalar(0));
+
+      this->createRelationTo<isSoftwareModelFor,ContinuumModel>(new ContinuumModel(
+            "10^(a - b/T) \nwhere a and b are the coefficients and T is the temperature.")
+            );
     }
 
     std::string getClassName() const { return "SaturationPressureModel"; }

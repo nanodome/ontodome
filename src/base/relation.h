@@ -24,21 +24,6 @@ public:
     virtual ~Relation() = default;
 };
 
-class isModelFor : public Relation {
-public:
-    isModelFor(Thing* _o0, Thing* _o1) : Relation(_o0,_o1) {}
-};
-
-class requiresModelFor : public Relation {
-public:
-    requiresModelFor(Thing* _o0, Thing* _o1) : Relation(_o0,_o1) {}
-};
-
-class hasModel : public Relation {
-public:
-    hasModel(Thing* _o0, Thing* _o1) : Relation(_o0,_o1) {}
-};
-
 class hasOverlap : public Relation {
 public:
     hasOverlap(Thing* _o0, Thing* _o1) : Relation(_o0,_o1) {}
@@ -92,6 +77,36 @@ public:
 class hasSign : public Relation {
 public:
   hasSign(Thing* _o0, Thing* _o1) : Relation(_o0,_o1) {}
+};
+
+class hasInput : public hasSign {
+public:
+    hasInput(Thing* _o0, Thing* _o1) : hasSign(_o0,_o1) {}
+};
+
+class hasOutput : public hasSign {
+public:
+    hasOutput(Thing* _o0, Thing* _o1) : hasSign(_o0,_o1) {}
+};
+
+class isModelFor : public hasSign {
+public:
+    isModelFor(Thing* _o0, Thing* _o1) : hasSign(_o0,_o1) {}
+};
+
+class isSoftwareModelFor : public hasSign {
+public:
+    isSoftwareModelFor(Thing* _o0, Thing* _o1) : hasSign(_o0,_o1) {}
+};
+
+class requiresModelFor : public hasSign {
+public:
+    requiresModelFor(Thing* _o0, Thing* _o1) : hasSign(_o0,_o1) {}
+};
+
+class hasModel : public hasSign {
+public:
+    hasModel(Thing* _o0, Thing* _o1) : hasSign(_o0,_o1) {}
 };
 
 class hasProperty : public hasSign {

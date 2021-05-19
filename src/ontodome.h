@@ -25,7 +25,6 @@
 #include <list>
 #include <vector>
 #include <string>
-#include <filesystem>
 
 // useful constants
 #define K_BOL 1.380650524e-23    // [J/K]

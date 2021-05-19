@@ -15,8 +15,14 @@ protected:
 public:
     // Dummy constructor for Knowledge Generators navigation
     SurfaceTensionModel() : SoftwareModel() {
-      this->createRelationTo<isModelFor>(new GasMixture); // actual relation
+      this->createRelationTo<isModelFor>(new GasMixture);
       this->createRelationTo<isModelFor>(new SurfaceTension(new Scalar(0), new Unit("dummy")));
+      this->createRelationTo<hasInput>(new Vector({0}));
+      this->createRelationTo<hasOutput>(new Scalar(0));
+
+      this->createRelationTo<isSoftwareModelFor,ContinuumModel>(new ContinuumModel(
+            "a - b * ( T - c ) \nwhere a,b and c are the coefficients and T is the temperature.")
+        );
     };
 
     // This model requires an initialization which is a vector containing the model's coefficients
@@ -27,6 +33,12 @@ public:
 
       this->createRelationTo<isModelFor>(new GasMixture); // actual relation
       this->createRelationTo<isModelFor>(new SurfaceTension(new Scalar(0), new Unit("dummy")));
+      this->createRelationTo<hasInput>(new Vector({0}));
+      this->createRelationTo<hasOutput>(new Scalar(0));
+
+      this->createRelationTo<isSoftwareModelFor,ContinuumModel>(new ContinuumModel(
+            "a - b * ( T - c ) \nwhere a,b and c are the coefficients and T is the temperature.")
+        );
     }
 
     std::string getClassName() const { return "SurfaceTensionModel"; }
