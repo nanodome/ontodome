@@ -91,6 +91,6 @@ typedef struct raw_c_data {
 #include "tools/clock.h"
 #include "tools/utilities.h"
 #include "base/thing.h"
-#include "models/knowledgegenerators.h"
+//#include "models/knowledgegenerators.h"
 
 #endif // ONTODOME

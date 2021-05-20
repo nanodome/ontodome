@@ -30,7 +30,7 @@
 /// Class implementing the gas phase.
 /// The gas phase is univocally determined knowing pressure, temperature and species molar fractions.
 /// Access to species properties is provided by hasPart relations defined in the GasMoxture object
-class GasModelCV  : public ContinuumModel {
+class GasModelCV  : public SoftwareModel {
 
 protected:
     std::map<boost::uuids::uuid,std::size_t> hash; ///< Hash map for name-to-index resolution

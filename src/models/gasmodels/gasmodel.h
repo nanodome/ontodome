@@ -31,7 +31,7 @@
 /// Class implementing the gas phase.
 /// The gas phase is univocally determined knowing pressure, temperature and species molar fractions.
 /// Access to species properties is provided by hasPart relations defined in the GasMoxture object
-class GasModel  : public ContinuumModel {
+class GasModel  : public SoftwareModel {
 
 protected:
     double p; ///< Gas phase pressure [Pa]

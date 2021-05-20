@@ -15,28 +15,32 @@ protected:
 public:
     // Dummy constructor for Knowledge Generators navigation
     SaturationPressureModel() : SoftwareModel() {
-      this->createRelationTo<isModelFor>(new GasMixture);
-      this->createRelationTo<isModelFor>(new SaturationPressure(new Scalar(0), new Unit("dummy")));
-      this->createRelationTo<hasInput>(new Vector({0}));
+      this->createRelationTo<hasModel>(new SaturationPressure(new Scalar(0), new Unit("dummy")));
+      this->createRelationTo<hasInput>(new IUPAC(""));
+      this->createRelationTo<hasInput>(new Scalar(0));
       this->createRelationTo<hasOutput>(new Scalar(0));
 
-      this->createRelationTo<isSoftwareModelFor,ContinuumModel>(new ContinuumModel(
+      this->createRelationTo<hasSoftwareModel,ContinuumModel>(new ContinuumModel(
             "10^(a - b/T) \nwhere a and b are the coefficients and T is the temperature.")
             );
     };
 
     // This model requires an initialization which is a vector containing the model's coefficients
-    SaturationPressureModel(std::vector<double> _s) : SoftwareModel() {
+//    SaturationPressureModel(std::vector<double> _s) : SoftwareModel() {
+      SaturationPressureModel(ChemicalSpecies* chem) : SoftwareModel() {
 
+      std::string name = chem->getRelatedObjects<IUPAC>()[0];
       // Store the model coefficients
-      s = _s;
+//      std::vector<double> s = get_coeffs(_s);
+//      s = _s;
+      s = {0.1,0.2};
 
-      this->createRelationTo<isModelFor>(new GasMixture);
-      this->createRelationTo<isModelFor>(new SaturationPressure(new Scalar(0), new Unit("dummy")));
-      this->createRelationTo<hasInput>(new Vector({0}));
+      this->createRelationTo<hasModel>(new SaturationPressure(new Scalar(0), new Unit("dummy")));
+      this->createRelationTo<hasInput>(new IUPAC(""));
+      this->createRelationTo<hasInput>(new Scalar(0));
       this->createRelationTo<hasOutput>(new Scalar(0));
 
-      this->createRelationTo<isSoftwareModelFor,ContinuumModel>(new ContinuumModel(
+      this->createRelationTo<hasSoftwareModel,ContinuumModel>(new ContinuumModel(
             "10^(a - b/T) \nwhere a and b are the coefficients and T is the temperature.")
             );
     }

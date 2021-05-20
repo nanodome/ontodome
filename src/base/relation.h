@@ -79,34 +79,29 @@ public:
   hasSign(Thing* _o0, Thing* _o1) : Relation(_o0,_o1) {}
 };
 
-class hasInput : public hasSign {
+class hasInput : public hasProperPart {
 public:
-    hasInput(Thing* _o0, Thing* _o1) : hasSign(_o0,_o1) {}
+    hasInput(Thing* _o0, Thing* _o1) : hasProperPart(_o0,_o1) {}
 };
 
-class hasOutput : public hasSign {
+class hasOutput : public hasProperPart {
 public:
-    hasOutput(Thing* _o0, Thing* _o1) : hasSign(_o0,_o1) {}
-};
-
-class isModelFor : public hasSign {
-public:
-    isModelFor(Thing* _o0, Thing* _o1) : hasSign(_o0,_o1) {}
-};
-
-class isSoftwareModelFor : public hasSign {
-public:
-    isSoftwareModelFor(Thing* _o0, Thing* _o1) : hasSign(_o0,_o1) {}
-};
-
-class requiresModelFor : public hasSign {
-public:
-    requiresModelFor(Thing* _o0, Thing* _o1) : hasSign(_o0,_o1) {}
+    hasOutput(Thing* _o0, Thing* _o1) : hasProperPart(_o0,_o1) {}
 };
 
 class hasModel : public hasSign {
 public:
     hasModel(Thing* _o0, Thing* _o1) : hasSign(_o0,_o1) {}
+};
+
+class hasMathematicalModel : public hasModel {
+public:
+    hasMathematicalModel(Thing* _o0, Thing* _o1) : hasModel(_o0,_o1) {}
+};
+
+class hasSoftwareModel : public hasModel {
+public:
+    hasSoftwareModel(Thing* _o0, Thing* _o1) : hasModel(_o0,_o1) {}
 };
 
 class hasProperty : public hasSign {

@@ -5,7 +5,7 @@
 
 class SurfaceTensionModel : public SoftwareModel {
 protected:
-    double model(std::vector<double> s, double T)
+    double run(std::vector<double> s, double T)
     {
         return (s[0] - (s[1]*(T - s[2])));
     }
@@ -15,12 +15,11 @@ protected:
 public:
     // Dummy constructor for Knowledge Generators navigation
     SurfaceTensionModel() : SoftwareModel() {
-      this->createRelationTo<isModelFor>(new GasMixture);
-      this->createRelationTo<isModelFor>(new SurfaceTension(new Scalar(0), new Unit("dummy")));
+      this->createRelationTo<hasModel>(new SurfaceTension(new Scalar(0), new Unit("dummy")));
       this->createRelationTo<hasInput>(new Vector({0}));
       this->createRelationTo<hasOutput>(new Scalar(0));
 
-      this->createRelationTo<isSoftwareModelFor,ContinuumModel>(new ContinuumModel(
+      this->createRelationTo<hasSoftwareModel,ContinuumModel>(new ContinuumModel(
             "a - b * ( T - c ) \nwhere a,b and c are the coefficients and T is the temperature.")
         );
     };
@@ -31,12 +30,11 @@ public:
       // Store the model coefficients
       s = _s;
 
-      this->createRelationTo<isModelFor>(new GasMixture); // actual relation
-      this->createRelationTo<isModelFor>(new SurfaceTension(new Scalar(0), new Unit("dummy")));
+      this->createRelationTo<hasModel>(new SurfaceTension(new Scalar(0), new Unit("dummy")));
       this->createRelationTo<hasInput>(new Vector({0}));
       this->createRelationTo<hasOutput>(new Scalar(0));
 
-      this->createRelationTo<isSoftwareModelFor,ContinuumModel>(new ContinuumModel(
+      this->createRelationTo<hasSoftwareModel,ContinuumModel>(new ContinuumModel(
             "a - b * ( T - c ) \nwhere a,b and c are the coefficients and T is the temperature.")
         );
     }
@@ -46,7 +44,7 @@ public:
     void run(double T) {
 
       // Compute the value and push it to the Species' Saturation pressure property
-      this->getLastRelation<hasModel>()->getDomain()->getRelatedObjects<SurfaceTension>()[0]->getRelatedObjects<Scalar>()[0]->data = model(s,T);
+      this->getLastRelation<hasModel>()->getDomain()->getRelatedObjects<SurfaceTension>()[0]->getRelatedObjects<Scalar>()[0]->data = run(s,T);
     }
 };
 

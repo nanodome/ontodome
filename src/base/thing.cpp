@@ -49,7 +49,7 @@ std::vector<double> Thing::getRelatedScalarObjects()
 
    for(auto i: relations) {
       if(T* r0 = dynamic_cast<T*>(i->getRange())) {
-        objs.push_back(r0->template getRelatedObjects<Scalar>()[0]->data);
+        objs.push_back(r0->template getRelatedObjects<Real>()[0]->data);
       }
    }
 

@@ -13,6 +13,7 @@ SOURCES += \
 
 HEADERS += \
 	src/base/relation.h \
+	src/base/species.h \
 	src/base/thing.h \
 #	src/models/gasmodels/gasmodel.h \
 	#src/models/gasmodels/gasmodelcv.h \
@@ -20,9 +21,11 @@ HEADERS += \
 	#src/models/nanomodels/nucleation/cnt.h \
 	#src/models/statemodels/stateinterpolator.h \
 	src/models/knowledgegenerators.h \
-	src/models/saturationpressuremodels/saturationpressuremodel.h \
-	src/models/surfacetensionmodels/surfacetensionmodel.h \
+#	src/models/saturationpressuremodels/saturationpressuremodel.h \
+#	src/models/surfacetensionmodels/surfacetensionmodel.h \
 	src/ontodome.h \
 	src/tools/clock.h \
 #		src/tools/rkf45.h \
-	src/tools/utilities.h
+	src/tools/utilities.h \
+	src/base/datatypes.h \
+	src/base/baseclass.h

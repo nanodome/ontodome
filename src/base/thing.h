@@ -77,19 +77,19 @@ public:
     std::vector<std::vector<double>> getRelatedVectorObjects();
 };
 
-class Item : public Thing {
+class EMMO : public Thing {
+public:
+    std::string getClassName() const { return "EMMO"; }
+};
+
+class Item : public EMMO {
 public:
     std::string getClassName() const { return "Item"; }
 };
 
-class Collection : public Thing {
+class Collection : public EMMO {
 public:
     std::string getClassName() const { return "Collection"; }
-};
-
-class Physical : public Item {
-public:
-    std::string getClassName() const { return "Physical"; }
 };
 
 class Quantum : public Item {
@@ -102,237 +102,14 @@ public:
     std::string getClassName() const { return "Void"; }
 };
 
-class Elementary : public Physical {
+class Physical : public Item {
 public:
-    std::string getClassName() const { return "Elementary"; }
+    std::string getClassName() const { return "Physical"; }
 };
 
 class Perspective : public Physical {
 public:
     std::string getClassName() const { return "Perspective"; }
-};
-
-class Symbolic : public Perspective {
-public:
-    std::string getClassName() const { return "Symbolic"; }
-};
-
-class String : public Symbolic, public DataType<std::string>
-{
-public:
-    std::string getClassName() const { return "String"; }
-};
-
-class Vector : public Symbolic, public DataType<std::vector<double>>
-{
-public:
-    Vector(std::vector<double> s) {data = s;}
-    std::string getClassName() const { return "Vector"; }
-};
-
-class IUPAC : public String
-{
-public:
-    IUPAC(std::string _iupac) { data = _iupac; }
-    std::string getClassName() const { return "IUPAC Name"; }
-};
-
-class LatexExpression : public String
-{
-public:
-  LatexExpression(std::string _expr) { data = _expr; }
-  std::string getClassName() const { return "LatexExpression"; }
-};
-
-class Unit : public String
-{
-public:
-    Unit(std::string _unit) {data = _unit;}
-    std::string getClassName() const { return "Unit"; }
-};
-
-class Quantity : public Symbolic
-{
-public:
-    std::string getClassName() const { return "Quantity"; }
-};
-
-class Scalar : public Symbolic, public DataType<double>
-{
-public:
-    Scalar(double s) {data = s;}
-    std::string getClassName() const { return "Scalar"; }
-};
-
-class ScalarQuantity : public Quantity
-{
-public:
-    ScalarQuantity(Scalar* _s, Unit* _u)
-    {
-        createRelationsTo<hasPart,Thing>({_u,_s});
-    }
-
-    std::string getClassName() const { return "ScalarQuantity"; }
-};
-
-class Pressure : public ScalarQuantity
-{
-public:
-    Pressure(Scalar* _s, Unit* _u) : ScalarQuantity(_s,_u) {}
-
-    std::string getClassName() const { return "Pressure"; }
-};
-
-class PressureTimeDerivative : public ScalarQuantity
-{
-public:
-    PressureTimeDerivative(Scalar* _s, Unit* _u) : ScalarQuantity(_s,_u) {}
-
-    std::string getClassName() const { return "PressureTimeDerivative"; }
-};
-
-class Temperature : public ScalarQuantity
-{
-public:
-    Temperature(Scalar* _s, Unit* _u) : ScalarQuantity(_s,_u) {}
-
-    std::string getClassName() const { return "Temperature"; }
-};
-
-class TemperatureTimeDerivative : public ScalarQuantity
-{
-public:
-    TemperatureTimeDerivative(Scalar* _s, Unit* _u) : ScalarQuantity(_s,_u) {}
-
-    std::string getClassName() const { return "TemperatureTimeDerivative"; }
-};
-
-class MolarFraction : public ScalarQuantity
-{
-public:
-    MolarFraction(Scalar* _s, Unit* _u) : ScalarQuantity(_s,_u) {}
-
-    std::string getClassName() const { return "MolarFraction"; }
-};
-
-class Mass : public ScalarQuantity
-{
-public:
-    Mass(Scalar* _s, Unit* _u) : ScalarQuantity(_s,_u) {}
-
-    std::string getClassName() const { return "Mass"; }
-};
-
-class BulkDensityLiquid : public ScalarQuantity
-{
-public:
-    BulkDensityLiquid(Scalar* _s, Unit* _u) : ScalarQuantity(_s,_u) {}
-
-    std::string getClassName() const { return "BulkDensityLiquid"; }
-};
-
-class BulkDensitySolid : public ScalarQuantity
-{
-public:
-    BulkDensitySolid(Scalar* _s, Unit* _u) : ScalarQuantity(_s,_u) {}
-
-    std::string getClassName() const { return "BulkDensitySolid"; }
-};
-
-class MeltingPoint : public ScalarQuantity
-{
-public:
-    MeltingPoint(Scalar* _s, Unit* _u) : ScalarQuantity(_s,_u) {}
-
-    std::string getClassName() const { return "MeltingPoint"; }
-};
-
-class Viscosity : public ScalarQuantity
-{
-public:
-    Viscosity(Scalar* _s, Unit* _u) : ScalarQuantity(_s,_u) {}
-
-    std::string getClassName() const { return "Viscosity"; }
-};
-
-class VectorQuantity : public Quantity
-{
-public:
-    VectorQuantity(Vector* _s, Unit* _u)
-    {
-        createRelationsTo<hasPart,Thing>({_u,_s});
-    }
-
-    std::string getClassName() const { return "VectorQuantity"; }
-};
-
-class SurfaceTension : public ScalarQuantity
-{
-public:
-    SurfaceTension(Scalar* _s, Unit* _u) : ScalarQuantity(_s,_u) {}
-
-    std::string getClassName() const { return "SurfaceTension"; }
-};
-
-class SaturationPressure : public ScalarQuantity
-{
-public:
-    SaturationPressure(Scalar* _s, Unit* _u) : ScalarQuantity(_s,_u) {}
-
-    std::string getClassName() const { return "SaturationPressure"; }
-};
-
-class KnowledgeGenerator : virtual public Perspective {
-public:
-    std::string getClassName() const { return "KnowledgeGenerator"; }
-};
-
-class Model : virtual public Perspective {
-public:
-    std::string getClassName() const { return "Model"; }
-};
-
-class SoftwareModel : public Model, public KnowledgeGenerator {
-public:
-    std::string getClassName() const { return "SoftwareModel"; }
-};
-
-class MathematicalModel : public Model {
-public:
-
-    MathematicalModel (std::string _expr) : Model() {
-
-    this->createRelationTo<hasProperty,LatexExpression>(new LatexExpression(_expr));
-    }
-
-    std::string getClassName() const { return "MathematicalModel"; }
-};
-
-class PhysicsBasedModel : public MathematicalModel {
-public:
-    PhysicsBasedModel(std::string _expr) : MathematicalModel(_expr) {
-
-      this->createRelationTo<hasProperty,LatexExpression>(new LatexExpression(_expr));
-      }
-    std::string getClassName() const { return "PhysicsBasedModel"; }
-};
-
-class ContinuumModel : public PhysicsBasedModel {
-public:
-    ContinuumModel(std::string _expr) : PhysicsBasedModel(_expr) {
-
-      this->createRelationTo<hasProperty,LatexExpression>(new LatexExpression(_expr));
-      }
-    std::string getClassName() const { return "ContinuumModel"; }
-};
-
-class MesoscopicModel : public PhysicsBasedModel {
-public:
-    MesoscopicModel(std::string _expr) : PhysicsBasedModel(_expr) {
-
-      this->createRelationTo<hasProperty,LatexExpression>(new LatexExpression(_expr));
-      }
-    std::string getClassName() const { return "MesoscopicModel"; }
 };
 
 class Reductionistic : public Perspective {
@@ -350,7 +127,175 @@ public:
     std::string getClassName() const { return "State"; }
 };
 
-class Matter : public Perspective {
+class Symbolic : public Perspective {
+public:
+    std::string getClassName() const { return "Symbolic"; }
+};
+
+class SymbolicConstruct : public Symbolic {
+public:
+    std::string getClassName() const { return "SymbolicConstruct"; }
+};
+
+class String : public SymbolicConstruct, public DataType<std::string>
+{
+public:
+    std::string getClassName() const { return "String"; }
+};
+
+class Arrangement : public State
+{
+public:
+    std::string getClassName() const { return "Arrangement"; }
+};
+
+class Array : public Arrangement
+{
+public:
+    std::string getClassName() const { return "Array"; }
+};
+
+class Vector : public Array, public DataType<std::vector<double>>
+{
+public:
+    Vector(std::vector<double> s) {data = s;}
+    std::string getClassName() const { return "Vector"; }
+};
+
+class Language : public Symbolic {
+public:
+    std::string getClassName() const { return "Language"; }
+};
+
+class Chemical : public Language {
+public:
+    std::string getClassName() const { return "Chemical"; }
+};
+
+class ChemicalSpecies : public Chemical {
+public:
+    std::string getClassName() const { return "ChemicalSpecies"; }
+};
+
+class ChemicalElement : public ChemicalSpecies {
+public:
+    std::string getClassName() const { return "ChemicalElement"; }
+};
+
+class Metrological : public Language {
+public:
+    std::string getClassName() const { return "Metrological"; }
+};
+
+class IUPAC : public String
+{
+public:
+    IUPAC(std::string _iupac) { data = _iupac; }
+    std::string getClassName() const { return "IUPAC Name"; }
+};
+
+class LatexExpression : public String
+{
+public:
+    LatexExpression(std::string _expr) { data = _expr; }
+    std::string getClassName() const { return "LatexExpression"; }
+};
+
+class Unit : public String
+{
+public:
+    Unit(std::string _unit) {data = _unit;}
+    std::string getClassName() const { return "Unit"; }
+};
+
+class Mathematical : public Language {
+public:
+    std::string getClassName() const { return "Mathematical"; }
+};
+
+class Numerical : public Mathematical {
+public:
+    std::string getClassName() const { return "Numerical"; }
+};
+
+class Number : public Numerical {
+public:
+    std::string getClassName() const { return "Number"; }
+};
+
+class Real : public Number, public DataType<double>
+{
+public:
+    Real(double s) {data = s;}
+    std::string getClassName() const { return "Real"; }
+};
+
+class KnowledgeGenerator : public Perspective {
+public:
+    std::string getClassName() const { return "KnowledgeGenerator"; }
+};
+
+class Holistic : public Perspective {
+public:
+    std::string getClassName() const { return "Holistic"; }
+};
+
+class Participant : public Holistic {
+public:
+    std::string getClassName() const { return "Participant"; }
+};
+
+class Semiotic : public Participant {
+public:
+    std::string getClassName() const { return "Semiotic"; }
+};
+
+class Sign : public Semiotic {
+public:
+    std::string getClassName() const { return "Sign"; }
+};
+
+class Icon : public Sign {
+public:
+    std::string getClassName() const { return "Icon"; }
+};
+
+class Model : public Icon {
+public:
+    std::string getClassName() const { return "Model"; }
+};
+
+class SoftwareModel : public Model, public KnowledgeGenerator {
+public:
+    std::string getClassName() const { return "SoftwareModel"; }
+};
+
+class MathematicalModel : public Model {
+public:
+    std::string getClassName() const { return "MathematicalModel"; }
+};
+
+class PhysicsBasedModel : public MathematicalModel {
+public:
+    std::string getClassName() const { return "PhysicsBasedModel"; }
+};
+
+class ContinuumModel : public PhysicsBasedModel {
+public:
+    std::string getClassName() const { return "ContinuumModel"; }
+};
+
+class MesoscopicModel : public PhysicsBasedModel {
+public:
+    std::string getClassName() const { return "MesoscopicModel"; }
+};
+
+class Physicalistic : public Perspective {
+public:
+    std::string getClassName() const { return "Physicalistic"; }
+};
+
+class Matter : public Physicalistic {
 public:
     std::string getClassName() const { return "Matter"; }
 };
@@ -375,7 +320,12 @@ public:
     std::string getClassName() const { return "GasMixture"; }
 };
 
-class MolecularEntity : public Matter {
+class ChemicalEntity : public Matter {
+public:
+    std::string getClassName() const { return "ChemicalEntity"; }
+};
+
+class MolecularEntity : public ChemicalEntity {
 public:
     std::string getClassName() const { return "MolecularEntity"; }
 };
@@ -390,22 +340,201 @@ public:
     std::string getClassName() const { return "PolyatomicEntity"; }
 };
 
-class HeteronuclearMolecule : public PolyatomicEntity {
+class Molecule : public PolyatomicEntity {
+public:
+    std::string getClassName() const { return "Molecule"; }
+};
+
+class HeteronuclearMolecule : public Molecule {
 public:
     std::string getClassName() const { return "HeteronuclearMolecule"; }
 };
 
-class HomonuclearMolecule : public PolyatomicEntity {
+class HomonuclearMolecule : public Molecule {
 public:
     std::string getClassName() const { return "HomonuclearMolecule"; }
 };
 
-class Time : public ScalarQuantity {
+class Quantity : public State, public Metrological
+{
 public:
-    Time(Scalar* _s, Unit* _u) : ScalarQuantity(_s,_u) {}
+    Quantity(Real* _s, Unit* _u)
+    {
+        State::createRelationsTo<hasPart,Thing>({_u,_s});
+    }
+
+    std::string getClassName() const { return "Quantity"; }
+};
+
+class PhysicalQuantity : public Quantity
+{
+public:
+    PhysicalQuantity(Real* _s, Unit* _u) : Quantity(_s,_u)
+    {
+        State::createRelationsTo<hasPart,Thing>({_u,_s});
+    }
+
+    std::string getClassName() const { return "PhysicalQuantity"; }
+};
+
+class BaseQuantity : public PhysicalQuantity
+{
+public:
+    BaseQuantity(Real* _s, Unit* _u) : PhysicalQuantity(_s,_u)
+    {
+        State::createRelationsTo<hasPart,Thing>({_u,_s});
+    }
+
+    std::string getClassName() const { return "BaseQuantity"; }
+};
+
+class Time : public BaseQuantity {
+public:
+    Time(Real* _s, Unit* _u) : BaseQuantity(_s,_u) {}
 
     std::string getClassName() const { return "Time"; }
 };
+
+class DerivedQuantity : public PhysicalQuantity
+{
+public:
+    DerivedQuantity(Real* _s, Unit* _u) : PhysicalQuantity(_s,_u)
+    {
+        State::createRelationsTo<hasPart,Thing>({_u,_s});
+    }
+
+    std::string getClassName() const { return "DerivedQuantity"; }
+};
+
+class Pressure : public DerivedQuantity
+{
+public:
+    Pressure(Real* _s, Unit* _u) : DerivedQuantity(_s,_u) {}
+
+    std::string getClassName() const { return "Pressure"; }
+};
+
+class Temperature : public BaseQuantity
+{
+public:
+    Temperature(Real* _s, Unit* _u) : BaseQuantity(_s,_u) {}
+
+    std::string getClassName() const { return "Temperature"; }
+};
+
+class Mass : public BaseQuantity
+{
+public:
+    Mass(Real* _s, Unit* _u) : BaseQuantity(_s,_u) {}
+
+    std::string getClassName() const { return "Mass"; }
+};
+
+class Density : public DerivedQuantity
+{
+public:
+    Density(Real* _s, Unit* _u) : DerivedQuantity(_s,_u) {}
+
+    std::string getClassName() const { return "Density"; }
+};
+
+class BulkDensityLiquid : public Density
+{
+public:
+    BulkDensityLiquid(Real* _s, Unit* _u) : Density(_s,_u) {}
+
+    std::string getClassName() const { return "BulkDensityLiquid"; }
+};
+
+class BulkDensitySolid : public Density
+{
+public:
+    BulkDensitySolid(Real* _s, Unit* _u) : Density(_s,_u) {}
+
+    std::string getClassName() const { return "BulkDensitySolid"; }
+};
+
+class ISQDimensionlessQuantity : public DerivedQuantity
+{
+public:
+    ISQDimensionlessQuantity(Real* _s, Unit* _u) : DerivedQuantity(_s,_u) {}
+
+    std::string getClassName() const { return "ISQDimensionlessQuantity"; }
+};
+
+class RatioQuantity : public ISQDimensionlessQuantity
+{
+public:
+    RatioQuantity(Real* _s, Unit* _u) : ISQDimensionlessQuantity(_s,_u) {}
+
+    std::string getClassName() const { return "RatioQuantity"; }
+};
+
+class MolarFraction : public RatioQuantity
+{
+public:
+    MolarFraction(Real* _s, Unit* _u) : RatioQuantity(_s,_u) {}
+
+    std::string getClassName() const { return "MolarFraction"; }
+};
+
+class Viscosity : public DerivedQuantity
+{
+public:
+    Viscosity(Real* _s, Unit* _u) : DerivedQuantity(_s,_u) {}
+
+    std::string getClassName() const { return "Viscosity"; }
+};
+
+class DynamicViscosity : public Viscosity
+{
+public:
+    DynamicViscosity(Real* _s, Unit* _u) : Viscosity(_s,_u) {}
+
+    std::string getClassName() const { return "DynamicViscosity"; }
+};
+
+class KinematicViscosity : public Viscosity
+{
+public:
+    KinematicViscosity(Real* _s, Unit* _u) : Viscosity(_s,_u) {}
+
+    std::string getClassName() const { return "KinematicViscosity"; }
+};
+
+class SurfaceTension : public DerivedQuantity
+{
+public:
+    SurfaceTension(Real* _s, Unit* _u) : DerivedQuantity(_s,_u) {}
+
+    std::string getClassName() const { return "SurfaceTension"; }
+};
+
+class SaturationPressure : public DerivedQuantity
+{
+public:
+    SaturationPressure(Real* _s, Unit* _u) : DerivedQuantity(_s,_u) {}
+
+    std::string getClassName() const { return "SaturationPressure"; }
+};
+
+//class PressureTimeDerivative : public ScalarQuantity
+//{
+//public:
+//    PressureTimeDerivative(Scalar* _s, Unit* _u) : ScalarQuantity(_s,_u) {}
+
+//    std::string getClassName() const { return "PressureTimeDerivative"; }
+//};
+
+//class TemperatureTimeDerivative : public ScalarQuantity
+//{
+//public:
+//    TemperatureTimeDerivative(Scalar* _s, Unit* _u) : ScalarQuantity(_s,_u) {}
+
+//    std::string getClassName() const { return "TemperatureTimeDerivative"; }
+//};
+
+#include "species.h"
 
 #include "thing.cpp"
 

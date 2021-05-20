@@ -18,7 +18,7 @@ protected:
   std::vector<Thing*> list;
 
 public:
-  // Constructo
+  // Constructor
   KnowledgeGeneratorsDB() {
     // KnowledgeGenerators must be added manually by the developer
     list.push_back(new SaturationPressureModel);
@@ -31,7 +31,7 @@ public:
     std::vector<std::string> champions;
 
     for (auto i : list) {
-      auto mod_for = i->getRelations<isModelFor>();
+      auto mod_for = i->getRelations<hasSoftwareModel>();
       for (auto ii : mod_for) {
         auto modeled = ii->getRange()->getClassName();
         if (modeled == criteria->getClassName())  {

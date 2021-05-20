@@ -33,7 +33,7 @@
 
 /// Classical Nucleation Theory (CNT) implementation. This class is the implementation of the
 /// CNT whose rates are calculated using the properties of the condensing species.
-class ClassicalNucleationTheory : public MesoscopicModel {
+class ClassicalNucleationTheory : public SoftwareModel {
 
 protected:
   double s_m_vol;

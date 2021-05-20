@@ -3,7 +3,7 @@
 
 #include "../../base/thing.h"
 
-class StateInterpolator : public Model {
+class StateInterpolator : public SoftwareModel {
 public:
   std::string getClassName() const { return "State temporal intepolator"; }
 

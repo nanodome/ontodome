@@ -32,7 +32,7 @@
 /// Implementation of the Pratsinis 1988 model.
 /// Simultaneous Nucleation, Condensation and Coagulation in Aerosol Reactors,
 /// S.E. Pratsinis, Journal of Colloid and Interface Science, Vol. 124, No. 2, August 1988
-class MomentModelPratsinis : public MesoscopicModel {
+class MomentModelPratsinis : public SoftwareModel {
 
 protected:
     double M0; ///< Nanoparticles number density [#/m3]
