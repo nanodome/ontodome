@@ -8,24 +8,23 @@ SOURCES += \
 	src/base/relation.cpp \
 	src/base/thing.cpp \
 	src/tools/clock.cpp \
-#		src/tools/rkf45.cpp \
 	src/tools/utilities.cpp
 
 HEADERS += \
+	src/knowledgegenerators/surfacetensionmodels/surfacetensionpolynomialmodel.h \
+	src/ontodome.h \
+	src/tools/clock.h \
+	src/tools/utilities.h \
+	src/base/datatypes.h \
+	src/base/baseclass.h \
 	src/base/relation.h \
 	src/base/species.h \
 	src/base/thing.h \
-#	src/models/gasmodels/gasmodel.h \
-	#src/models/gasmodels/gasmodelcv.h \
-	#src/models/nanomodels/moments/momentmodelpratsinis.h \
-	#src/models/nanomodels/nucleation/cnt.h \
-	#src/models/statemodels/stateinterpolator.h \
-	src/models/knowledgegenerators.h \
-#	src/models/saturationpressuremodels/saturationpressuremodel.h \
-#	src/models/surfacetensionmodels/surfacetensionmodel.h \
-	src/ontodome.h \
-	src/tools/clock.h \
-#		src/tools/rkf45.h \
-	src/tools/utilities.h \
-	src/base/datatypes.h \
-	src/base/baseclass.h
+	src/knowledgegenerators/knowledgegenerators.h \
+	src/knowledgegenerators/surfacetensionmaterialrelation.h
+#	src/knowledgegenerators/saturationpressurematerialrelation.h
+	#src/knowledgegenerators/gasmodels/gasmodel.h \
+	#src/knowledgegenerators/gasmodels/gasmodelcv.h \
+	#src/knowledgegenerators/nanomodels/moments/momentmodelpratsinis.h \
+	#src/knowledgegenerators/nanomodels/nucleation/cnt.h \
+	#src/knowledgegenerators/statemodels/stateinterpolator.h \

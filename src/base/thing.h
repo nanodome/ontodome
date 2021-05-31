@@ -8,11 +8,16 @@
 #include "baseclass.h"
 #include "relation.h"
 #include "datatypes.h"
+#include "algorithm"
 
 class Thing : public BaseClass {
 
     // dynamic relations
     std::vector<Relation*> relations;
+
+    // Find related objects through the entity relations hierarchy with class as given
+    // uses a list of the already scanned objects' uuids
+    template<class T> T* looker(Thing* start, std::vector<boost::uuids::uuid>* scanned);
 
 public:
     virtual std::string getClassName() const { return "Thing"; }
@@ -64,17 +69,18 @@ public:
     // Gets the last entity with given relation to this entity
     template<class T> T* getLastRelation();
 
-    // Gets the all the entities with the specified class related to this entity
+    // Find first related object through the entity relations hierarchy with class as given
+    template<class T> T* find();
+
+    // Find all related objects through the entity relations hierarchy with class as given
+    template<class T> std::vector<T*> findAll();
+
+    // virtual run method for objects which requires it
+    virtual void run() { std::cout << "what to run? eh?" << std::endl;};
+
+    // Gets the all the entities with the specified class related to given entity
     template<class T>
     std::vector<T*> getRelatedObjects();
-
-    // Gets all the entities with given relation to the entity, but automatically return its scalar value
-    template<class T>
-    std::vector<double> getRelatedScalarObjects();
-
-    // Gets all the entities with given relation to the entity, but automatically return its vector value
-    template<class T>
-    std::vector<std::vector<double>> getRelatedVectorObjects();
 };
 
 class EMMO : public Thing {
@@ -107,7 +113,7 @@ public:
     std::string getClassName() const { return "Physical"; }
 };
 
-class Perspective : public Physical {
+class Perspective :virtual public Physical {
 public:
     std::string getClassName() const { return "Perspective"; }
 };
@@ -125,6 +131,21 @@ public:
 class State : public Existent {
 public:
     std::string getClassName() const { return "State"; }
+};
+
+class ChemicalComposition : public State {
+public:
+    std::string getClassName() const { return "ChemicalComposition"; }
+};
+
+class Equation : public State {
+public:
+    std::string getClassName() const { return "Equation"; }
+};
+
+class MaterialRelation : public Equation {
+public:
+    std::string getClassName() const { return "MaterialRelation"; }
 };
 
 class Symbolic : public Perspective {
@@ -268,6 +289,12 @@ public:
 class SoftwareModel : public Model, public KnowledgeGenerator {
 public:
     std::string getClassName() const { return "SoftwareModel"; }
+
+    // Calls the model's/material relation's software implementation method.
+    // If multiple methods are defined for the same SoftwareModel object, the first added is selected;
+    void run() {
+      find<SoftwareModel>()->run();
+    }
 };
 
 class MathematicalModel : public Model {
@@ -518,24 +545,17 @@ public:
     std::string getClassName() const { return "SaturationPressure"; }
 };
 
-//class PressureTimeDerivative : public ScalarQuantity
-//{
-//public:
-//    PressureTimeDerivative(Scalar* _s, Unit* _u) : ScalarQuantity(_s,_u) {}
+class SingleComponentComposition : public ChemicalComposition {
+public:
+    MolarFraction* mol;
+    std::string name;
 
-//    std::string getClassName() const { return "PressureTimeDerivative"; }
-//};
-
-//class TemperatureTimeDerivative : public ScalarQuantity
-//{
-//public:
-//    TemperatureTimeDerivative(Scalar* _s, Unit* _u) : ScalarQuantity(_s,_u) {}
-
-//    std::string getClassName() const { return "TemperatureTimeDerivative"; }
-//};
-
-#include "species.h"
+    SingleComponentComposition(MolarFraction* _mol, std::string _name) { mol = _mol; name = _name; }
+    std::string getClassName() const { return "SingleComponentComposition"; }
+};
 
 #include "thing.cpp"
+
+#include "species.h"
 
 #endif // THING_H

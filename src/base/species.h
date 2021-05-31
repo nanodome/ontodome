@@ -1,3 +1,6 @@
+#ifndef SPECIES_H
+#define SPECIES_H
+
 #include "thing.h"
 
 class HeliumSymbol : public ChemicalElement {
@@ -53,3 +56,6 @@ public:
     }
     std::string getClassName() const { return "Silicon"; }
 };
+
+
+#endif // SPECIES_H
