@@ -31,8 +31,7 @@ public:
     }
 
     void run() {
-      // Select the model coefficients based on IUPAC name
-//      std::string _name = "Si";
+      // Select the model coefficients based on Species Symbol
       std::string _name = find<SingleComponentComposition>()->name;
       s = get_coeffs(_name);
 
@@ -43,18 +42,19 @@ public:
       find<SurfaceTension>()->getRelatedObjects<Real>()[0]->data = impl(T);
     }
 
-    std::vector<double> get_coeffs(std::string name) const {
-      if (name == "Silicon") {
+    std::vector<double> get_coeffs(std::string _name) const {
+      if (_name == "Silicon") {
         return {0.732, 0.000086, 1685};
       }
-      else if (name == "Argon") {
+      else if (_name == "Argon") {
         return {0.,0.,0.};
       }
-      else if (name == "Helium") {
+      else if (_name == "Helium") {
         return {0.,0.,0.};
       }
       else { abort(); }
     }
+
 };
 
 #endif // SURFACETENSIONPOLYNOMIALMODEL_H

@@ -13,19 +13,6 @@ std::vector<T*> Thing::getRelations() {
    return rels;
 }
 
-template<class T>
-T* Thing::getLastRelation() {
-   T* rel;
-
-   for(auto i: relations) {
-      if(T* r0 = dynamic_cast<T*>(i)) {
-        rel = r0;
-      }
-   }
-
-   return rel;
-}
-
 // avoids looping on same object by returning the other object in a given relation
 Thing* avoider (Thing* o0, Relation* o1) {
   Thing* tested;
@@ -44,6 +31,7 @@ void adder(std::vector<boost::uuids::uuid>* scans, boost::uuids::uuid id) {
   }
 }
 
+// looks into an objects relations set and decides wheter to continue looking in its related objects or not
 template<class T>
 T* Thing::looker(Thing* start, std::vector<boost::uuids::uuid>* scanned) {
   T* result = nullptr;
@@ -85,10 +73,10 @@ T* Thing::looker(Thing* start, std::vector<boost::uuids::uuid>* scanned) {
 
 template<class T>
 T* Thing::find() {
-  auto* start = this;
-  T* result = nullptr; // result pointer
+  auto* start = this; // the starting object will always be the objects from which the method is called
+  T* result = nullptr;
   std::vector<boost::uuids::uuid> scanned; // list of scanned objects by means of UUID
-  adder(&scanned,start->getUuid()); // add start to scanned items to avoid looping
+  adder(&scanned,start->getUuid()); // add start to scanned items in order to avoid looping
 
   // scan for object of type T in start object relations
   for (auto i : start->relations) {
@@ -96,6 +84,7 @@ T* Thing::find() {
     adder(&scanned,tested->getUuid()); //add to scanned list
     if (dynamic_cast<T*>(tested)) {
       result = dynamic_cast<T*>(tested);
+      break; // stop searching, we got it
     }
   }
 
@@ -105,7 +94,7 @@ T* Thing::find() {
       auto tested = avoider(start,i);
       adder(&scanned,tested->getUuid()); // add to scanned list
       result = looker<T>(tested, &scanned);
-      if (result != nullptr) { break; }
+      if (result != nullptr) { break; } // stop searching, we got it
     }
   }
 
@@ -117,8 +106,8 @@ T* Thing::find() {
 
 template<class T>
 std::vector<T*> Thing::findAll() {
-  auto* start = this;
-  std::vector<T*> result; // result pointer
+  auto* start = this;  // the starting object will always be the objects from which the method is called
+  std::vector<T*> result;
   std::vector<boost::uuids::uuid> scanned; // list of scanned objects by means of UUID
   adder(&scanned,start->getUuid()); // add start to scanned items to avoid looping
 

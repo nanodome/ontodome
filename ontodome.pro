@@ -11,6 +11,8 @@ SOURCES += \
 	src/tools/utilities.cpp
 
 HEADERS += \
+	src/knowledgegenerators/saturationpressurematerialrelation.h \
+	src/knowledgegenerators/saturationpressuremodels/saturationpressurepolynomialmodel.h \
 	src/knowledgegenerators/surfacetensionmodels/surfacetensionpolynomialmodel.h \
 	src/ontodome.h \
 	src/tools/clock.h \

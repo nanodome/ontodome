@@ -74,6 +74,4 @@ bool counter_trigger(std::size_t iter, std::size_t every_n_iter);
 //// vect[2] -> offsets
 //std::vector<std::vector<int>> GetAbsoluteIndices(std::vector<std::tuple<int, int, int>> graph_data, std::vector<int> p_list);
 
-
-
 #endif // _UTILITIES_H_

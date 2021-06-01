@@ -66,9 +66,6 @@ public:
     // Gets all the entities with given relation to this entity
     template<class T> std::vector<T*> getRelations();
 
-    // Gets the last entity with given relation to this entity
-    template<class T> T* getLastRelation();
-
     // Find first related object through the entity relations hierarchy with class as given
     template<class T> T* find();
 

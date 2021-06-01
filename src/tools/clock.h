@@ -24,7 +24,6 @@
 
 #include <chrono>
 
-
 class WallClock {
 
     std::chrono::high_resolution_clock::time_point t1, t2;

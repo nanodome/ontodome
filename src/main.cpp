@@ -4,9 +4,6 @@
 
 #include "ontodome.h"
 
-//#include "base/thing.h"
-//#include "knowledgegenerators/surfacetensionmodels/surfacetensionpolynomialmodel.h"
-
 int main()
 {
     WallClock clock;
@@ -40,13 +37,25 @@ int main()
     stmr.createRelationTo<hasSoftwareModel,SurfaceTensionPolynomialModel>(&stpm);
     st.createRelationTo<hasMathematicalModel,SurfaceTensionMaterialRelation>(&stmr);
     si.createRelationTo<hasProperty,SurfaceTension>(&st);
-    si.getRelatedObjects<SurfaceTension>()[0]->getRelatedObjects<MaterialRelation>()[0]->run();
+    si.getRelatedObjects<SurfaceTension>()[0]->getRelatedObjects<SurfaceTensionMaterialRelation>()[0]->run();
+
+    SaturationPressurePolynomialModel sapm;
+    SaturationPressureMaterialRelation samr;
+    SaturationPressure sa(new Real(0.), new Unit("Pa"));
+
+    samr.createRelationTo<hasSoftwareModel,SaturationPressurePolynomialModel>(&sapm);
+    sa.createRelationTo<hasMathematicalModel,SaturationPressureMaterialRelation>(&samr);
+    si.createRelationTo<hasProperty,SaturationPressure>(&sa);
+    si.getRelatedObjects<SaturationPressure>()[0]->getRelatedObjects<SaturationPressureMaterialRelation>()[0]->run();
+
 
     auto test = gas.findAll<SingleComponentComposition>();
 
     std::cout << "Temp: " << gas.getRelatedObjects<Temperature>()[0]->getRelatedObjects<Real>()[0]->data << std::endl;
 
     std::cout << "Surface Tension value: " << si.getRelatedObjects<SurfaceTension>()[0]->getRelatedObjects<Real>()[0]->data << std::endl;
+
+    std::cout << "Saturation Pressure value: " << si.getRelatedObjects<SaturationPressure>()[0]->getRelatedObjects<Real>()[0]->data << std::endl;
 
     clock.stop();
     std::cout << "Execution time: " << clock.interval() << " s" << std::endl;
