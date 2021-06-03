@@ -11,6 +11,7 @@ private:
     }
 
     std::vector<double> s;
+    double* sval;
 
 public:
     SaturationPressurePolynomialModel() : SoftwareModel() {
@@ -31,15 +32,20 @@ public:
     }
 
     void run() {
-      // Select the model coefficients based on Species Symbol
-      std::string _name = find<SingleComponentComposition>()->name;
-      s = get_coeffs(_name);
+      // Select the model coefficients based on Species Symbol and quantity pointer
+      // In order to save computational time on several calls of the run method, this
+      // has to be done the first time only
+      if (s.size() == 0) {
+        std::string _name = find<SingleComponentComposition>()->name;
+        s = get_coeffs(_name);
+        sval = &find<SaturationPressure>()->getRelatedObjects<Real>()[0]->data;
+      }
 
       //Get the object's first related temperature
       double T = find<Temperature>()->getRelatedObjects<Real>()[0]->data;
 
       // Compute the value and push it to the Species' Saturation Pressure object
-      find<SaturationPressure>()->getRelatedObjects<Real>()[0]->data = impl(s,T);
+      *sval = impl(s,T);
     }
 
     std::vector<double> get_coeffs(std::string _name) const {
