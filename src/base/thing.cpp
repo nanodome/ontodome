@@ -99,7 +99,7 @@ T* Thing::find() {
   }
 
   if (result == nullptr) {
-      std::cout << "Not found." << std::endl;
+      std::cout << "Not found." << std::endl; // for test purposes
       abort(); }
   else { return result; }
 }
@@ -131,7 +131,7 @@ std::vector<T*> Thing::findAll() {
   }
 
   if (result.size() == 0) {
-      std::cout << "Not found." << std::endl;
+      std::cout << "Not found." << std::endl; // for test purposes
       abort(); }
   else { return result; }
 }

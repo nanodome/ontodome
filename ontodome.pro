@@ -11,7 +11,6 @@ SOURCES += \
 	src/tools/utilities.cpp
 
 HEADERS += \
-	src/knowledgegenerators/saturationpressurematerialrelation.h \
 	src/knowledgegenerators/saturationpressuremodels/saturationpressurepolynomialmodel.h \
 	src/knowledgegenerators/surfacetensionmodels/surfacetensionpolynomialmodel.h \
 	src/ontodome.h \
@@ -23,10 +22,10 @@ HEADERS += \
 	src/base/species.h \
 	src/base/thing.h \
 	src/knowledgegenerators/knowledgegenerators.h \
-	src/knowledgegenerators/surfacetensionmaterialrelation.h
-#	src/knowledgegenerators/saturationpressurematerialrelation.h
-	#src/knowledgegenerators/gasmodels/gasmodel.h \
+	src/knowledgegenerators/surfacetensionmaterialrelation.h \
+	src/knowledgegenerators/saturationpressurematerialrelation.h \
 	#src/knowledgegenerators/gasmodels/gasmodelcv.h \
 	#src/knowledgegenerators/nanomodels/moments/momentmodelpratsinis.h \
 	#src/knowledgegenerators/nanomodels/nucleation/cnt.h \
 	#src/knowledgegenerators/statemodels/stateinterpolator.h \
+	src/knowledgegenerators/gasmodels/gasmodel.h

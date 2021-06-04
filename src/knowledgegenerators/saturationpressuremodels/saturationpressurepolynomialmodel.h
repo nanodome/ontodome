@@ -5,7 +5,7 @@
 
 class SaturationPressurePolynomialModel : public SoftwareModel, public SaturationPressureMaterialRelation {
 private:
-    double impl(std::vector<double> s, double T)
+    double impl(double T)
     {
         return 1.01e5 * pow(10.0,(s[0]-(s[1]/T)));
     }
@@ -45,7 +45,7 @@ public:
       double T = find<Temperature>()->getRelatedObjects<Real>()[0]->data;
 
       // Compute the value and push it to the Species' Saturation Pressure object
-      *sval = impl(s,T);
+      *sval = impl(T);
     }
 
     std::vector<double> get_coeffs(std::string _name) const {

@@ -73,7 +73,7 @@ public:
     template<class T> std::vector<T*> findAll();
 
     // virtual run method for objects which requires it
-    virtual void run() { std::cout << "what to run? eh?" << std::endl;};
+    virtual void run() { std::cout << "what to run? eh?" << std::endl;  /* for test purposes */ };
 
     // Gets the all the entities with the specified class related to given entity
     template<class T>
@@ -540,6 +540,22 @@ public:
     SaturationPressure(Real* _s, Unit* _u) : DerivedQuantity(_s,_u) {}
 
     std::string getClassName() const { return "SaturationPressure"; }
+};
+
+class PressureTimeDerivative : public DerivedQuantity
+{
+public:
+    PressureTimeDerivative(Real* _s, Unit* _u) : DerivedQuantity(_s,_u) {}
+
+    std::string getClassName() const { return "PressureTimeDerivative"; }
+};
+
+class TemperatureTimeDerivative : public DerivedQuantity
+{
+public:
+    TemperatureTimeDerivative(Real* _s, Unit* _u) : DerivedQuantity(_s,_u) {}
+
+    std::string getClassName() const { return "TemperatureTimeDerivative"; }
 };
 
 class SingleComponentComposition : public ChemicalComposition {

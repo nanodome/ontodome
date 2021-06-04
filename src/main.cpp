@@ -17,9 +17,15 @@ int main()
     SingleComponentComposition he(&mhe,HeliumSymbol::get_symbol());
 
     Temperature T(new Real(1200.), new Unit("K"));
+    Pressure p(new Real(101325.), new Unit("Pa"));
+    PressureTimeDerivative dpdt(new Real(0.), new Unit("Pa/s"));
+    TemperatureTimeDerivative dTdt(new Real(-1e+6), new Unit("K/s"));
 
     gas.createRelationsTo<hasPart,SingleComponentComposition>({&si,&he});
     gas.createRelationTo<hasProperty,Temperature>(&T);
+    gas.createRelationTo<hasProperty,Pressure>(&p);
+    gas.createRelationTo<hasProperty,PressureTimeDerivative>(&dpdt);
+    gas.createRelationTo<hasProperty,TemperatureTimeDerivative>(&dTdt);
 
 //	// KGDB
 //	KnowledgeGeneratorsDB kgdb;
@@ -56,6 +62,16 @@ int main()
     std::cout << "Surface Tension value: " << si.getRelatedObjects<SurfaceTension>()[0]->getRelatedObjects<Real>()[0]->data << std::endl;
 
     std::cout << "Saturation Pressure value: " << si.getRelatedObjects<SaturationPressure>()[0]->getRelatedObjects<Real>()[0]->data << std::endl;
+
+    // Gas Model tests
+    GasModel gm;
+    gm.createRelationTo<hasModel,GasMixture>(&gas);
+    double si_cons = -5e+28;
+    for (int i = 1; i < 5000; i++) {
+      if (i >= 1000) si_cons = 0.;
+      gm.timestep(1e-7,{si_cons,0});
+    }
+    gm.print();
 
     clock.stop();
     std::cout << "Execution time: " << clock.interval() << " s" << std::endl;

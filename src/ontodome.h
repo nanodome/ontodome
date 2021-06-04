@@ -95,5 +95,6 @@ typedef struct raw_c_data {
 
 #include "knowledgegenerators/saturationpressuremodels/saturationpressurepolynomialmodel.h"
 #include "knowledgegenerators/surfacetensionmodels/surfacetensionpolynomialmodel.h"
+#include "knowledgegenerators/gasmodels/gasmodel.h"
 
 #endif // ONTODOME
