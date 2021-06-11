@@ -26,14 +26,14 @@
 #include <vector>
 #include <string>
 
-// useful constants
+// Useful constants
 #define K_BOL 1.380650524e-23    // [J/K]
 #define E_CHARGE 1.602176565e-19 // [C]
 #define AMU 1.660538921e-27      // [kg]
 #define N_AVO 6.0221408571e23    // [#/mol]
 
 
-// normalization units
+// Normalization units
 #define MASS_UNIT 1.66053892e-027   //kg (= 1 amu)
 #define LENGTH_UNIT 1.0e-010        //m (= 1 angstrom)
 #define TIME_UNIT 1.01805055e-014   //s
@@ -42,7 +42,7 @@
 #define TEMPERATURE_UNIT (1.0/8.617332478e-5) //K
 
 
-// useful math macros
+/// Useful math macro
 #define square(x) ((x)*(x))
 
 
@@ -52,7 +52,7 @@
 // activate DEBUG prints
 //#define NANO_DEBUG
 
-// parameters used for SHAKE algorithm
+// Parameters used for SHAKE algorithm
 #define SHAKE_CONV_CRITERION 1e-4
 #define SHAKE_MAX_ITERATIONS 500
 

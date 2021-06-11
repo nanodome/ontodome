@@ -6,6 +6,9 @@
 
 #include "baseclass.h"
 
+/// This class includes all the ontological relations that can be defined
+/// between two objects. They follow the hierarchical structure defined under the EMMO project.
+
 class Thing;
 
 class Relation : public BaseClass {
@@ -16,9 +19,13 @@ public:
     Relation(Thing* _o0, Thing* _o1)
         : o0(_o0), o1(_o1) {}
 
+    /// Returns the name of the defined relation.
     virtual std::string getRelationName() const { return "Relation"; }
 
+    /// Returns the Domain of a relation (the object for which the relation was defined).
     Thing* getDomain() { return o0; }
+
+    /// Returns the Range of a relation (the object to which the relation points).
     Thing* getRange()  { return o1; }
 
     virtual ~Relation() = default;

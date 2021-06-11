@@ -29,19 +29,19 @@
 
 /// Class implementing the gas phase.
 /// The gas phase is univocally determined knowing pressure, temperature and species molar fractions.
-/// Access to species properties is provided by hasPart relations defined in the GasMoxture object
+/// Access to species properties is provided by hasPart relations defined in the GasMixture object.
 class GasModel  : public SoftwareModel {
 
 protected:
-    double p; ///< Gas phase pressure [Pa]
-    double T; ///< Gas phase temperature [K]
-    double dpdt; ///< Gas phase pressure time derivative [Pa/s]
-    double dTdt; ///< Gas phase temperature time derivative [K/s]
-    double gamma; ///< expansion coefficient [1/s]
-    std::vector<SingleComponentComposition*> specs; ///< vector containing all the species
-    std::valarray<double> w; ///< Species molar fractions
-    std::map<std::string,std::size_t> hash; ///< Hash map for name-to-index resolution
-    bool init = false;
+    double p; ///< Gas phase pressure [Pa].
+    double T; ///< Gas phase temperature [K].
+    double dpdt; ///< Gas phase pressure time derivative [Pa/s].
+    double dTdt; ///< Gas phase temperature time derivative [K/s].
+    double gamma; ///< expansion coefficient [1/s].
+    std::vector<SingleComponentComposition*> specs; ///< vector containing all the species.
+    std::valarray<double> w; ///< Species molar fractions.
+    std::map<std::string,std::size_t> hash; ///< Hash map for name-to-index resolution.
+    bool init = false; ///< Boolean value which stores whether the model is initialized or not.
 
 public:
 
@@ -52,7 +52,7 @@ public:
 
     std::string getClassName() const { return "Gas Continuum Model"; }
 
-    /// Run the model
+    /// Initialize the model by looking for the required inputs through the relations graph.
     void initialize() {
       // Get the GasMixture conditions
       auto gp = this->findNearest<GasMixture>();
@@ -70,7 +70,9 @@ public:
       init = true;
     }
 
-    /// Run the model
+    /// Run the model for a given timestep and species consumption array.
+    /// \param dt temporal step [s].
+    /// \param w_cons species consumption array [#/m3/s].
     void timestep(double dt, std::valarray<double> w_cons) {
       // Initialize the model if not done before
       if (init == false) { initialize(); }
@@ -129,7 +131,7 @@ public:
 //      gp->push_state(state,time);
 //    }
 
-    /// Get gas phase molar fractions
+    /// Get the gas phase molar fractions array.
     std::valarray<double> get_molar_fractions()
     {
       if (!specs.empty())
@@ -161,16 +163,16 @@ public:
 //      else { abort(); }
 //    }
 
-    /// Get the expansion coefficient [1/s]
+    /// Get the expansion coefficient [1/s].
     double get_gamma() const { return gamma; }
 
-    /// Get the temperature [K]
+    /// Get the temperature [K].
     double get_T() const { return T; }
 
-    /// Get the pressure [pa]
+    /// Get the pressure [pa].
     double get_p() const { return p; }
 
-    /// Get gas phase molecules average viscosity [Pa s]
+    /// Get gas phase molecules average viscosity [Pa s].
     double get_average_viscosity() const {
       double visc = 0;
 
@@ -180,12 +182,12 @@ public:
       return visc;
     }
 
-    /// Get gas phase number density [#/m3]
+    /// Get gas phase number density [#/m3].
     double get_n() const { return p/(K_BOL*T); }
 
-    /// Get superaturation ratio [#]
-    /// \param spec selected species
-    /// \param T temperature [K]
+    /// Get the superaturation ratio [#].
+    /// \param spec selected species.
+    /// \param T temperature [K].
     template <class TT> double get_S(TT* spec, double T) const {
 
       double m_frac = w[hash.at(spec->name)];
@@ -195,17 +197,17 @@ public:
       return ns/n_sat;
     }
 
-    /// Saturation density [#/m3]
-    /// \param spec selected species
-    /// \param T temperature [K]
+    /// Get the saturation density [#/m3].
+    /// \param spec selected species.
+    /// \param T temperature [K].
     template <class TT> double get_n_sat(TT* spec, double T) const {
       spec->template getRelatedObjects<SaturationPressure>()[0]->template getRelatedObjects<SaturationPressureMaterialRelation>()[0]->run();
       return spec->template getRelatedObjects<SaturationPressure>()[0]->template getRelatedObjects<Real>()[0]->data /(K_BOL*T); }
 
-    /// Get gas phase mass density [kg/m3]
+    /// Get the gas phase mass density [kg/m3].
     double get_density() const { return get_average_molecular_mass() * p/(K_BOL*T); }
 
-    /// Get gas phase molecules average mass [kg]
+    /// Get the gas phase molecules average mass [kg].
     double get_average_molecular_mass() const {
 
       double m = 0.;
@@ -216,10 +218,10 @@ public:
       return m;
     }
 
-    /// Get gas phase mean free path [m]
+    /// Get the gas phase mean free path [m].
     double get_mfp() const { return (get_average_viscosity()/p) * sqrt(M_PI*K_BOL*T/(2.*get_average_molecular_mass())); }
 
-    /// Get gas flux used for Langevin dynamics [kg/m2 s]
+    /// Get the gas flux used for Langevin dynamics [kg/m2 s].
     double get_gas_flux() const {
       double flux = 0.;
 
@@ -234,7 +236,7 @@ public:
       return flux;
     }
 
-    /// Print gas phase parameters
+    /// Prints the gas phase most relevant properties.
     void print() {
       for(auto& sp : specs)
           std::cout << sp->name << '\t';

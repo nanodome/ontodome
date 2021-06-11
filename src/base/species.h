@@ -1,6 +1,10 @@
 #ifndef SPECIES_H
 #define SPECIES_H
 
+/// This class contains all the chemical elements that will be used in ontodome.
+/// Each element has a Symbol which corresponds to its standard name (i.e. Periodic Table of Elements)
+/// and a method ("get_symbol") which returns it.
+
 #include "thing.h"
 
 class HeliumSymbol : public ChemicalElement {

@@ -7,14 +7,17 @@
 
 boost::uuids::random_generator uuid_gen;
 
+/// Ontology's root class.
+/// It provides a UUID for each object when instantiated.
+
 class BaseClass
 {
-    // uuid
-    boost::uuids::uuid uuid;
+    boost::uuids::uuid uuid; // object's uuid
 
 public:
-    BaseClass() { uuid = uuid_gen(); }
+    BaseClass() { uuid = uuid_gen(); } // every object gets a UUID when instantiated
 
+    /// Returns the object's UUID.
     boost::uuids::uuid getUuid() const { return uuid; }
 
 };

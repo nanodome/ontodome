@@ -9,12 +9,9 @@ class SaturationPressureMaterialRelation : public MaterialRelation {
 public:
     std::string getClassName() const { return "SaturationPressureMaterialRelation"; }
 
+    /// Finds and run first related Software object model.
     void run()
-    {
-        // Find and run first related Software object model
-        // std::cout << "Software Model is: " << find<SoftwareModel>()->getClassName() << std::endl;
-        findNearest<SoftwareModel>()->run();
-    }
+    { findNearest<SoftwareModel>()->run(); }
 };
 
 #endif //SATURATIONPRESSUREMATERIALRELATION_H

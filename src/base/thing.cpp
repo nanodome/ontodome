@@ -1,5 +1,42 @@
 #include "thing.h"
 
+void Thing::addRelation(Relation* t) {
+  if (std::find(relations.begin(), relations.end(), t) == relations.end()) {
+  relations.push_back(t);
+  } else { abort(); }
+}
+
+void Thing::removeRelation(Relation* r) {
+  int i = 0;
+  // look for the index associated to the relation
+  for (auto i : relations) {
+    if (r == i) { break; }
+    i += 1;
+  }
+  if (i != 0) { relations.erase(relations.begin()+i); }
+  else { abort(); }
+}
+
+template<class T, class T0>
+void Thing::createRelationTo(T0* o1) {
+
+    T* r = new T(this,o1);
+
+    this->addRelation(r);
+    o1->addRelation(r);
+}
+
+template<class T, class T0>
+void Thing::createRelationsTo(std::vector<T0*> o1) {
+
+  for (auto i : o1) {
+    T* r = new T(this,i);
+
+    this->addRelation(r);
+    i->addRelation(r);
+  }
+}
+
 template<class T>
 std::vector<T*> Thing::getRelations() {
    std::vector<T*> rels;
@@ -13,7 +50,7 @@ std::vector<T*> Thing::getRelations() {
    return rels;
 }
 
-// avoids looping on same object by returning the other object in a given relation
+/// Avoids looping on same object by returning the other object in a given relation.
 Thing* avoider (Thing* o0, Relation* o1) {
   Thing* tested;
   if (o1->getRange()->getUuid() != o0->getUuid()) {
@@ -24,14 +61,13 @@ Thing* avoider (Thing* o0, Relation* o1) {
   return tested;
 }
 
-// add only UUID to list if not already present
+/// Adds the UUID of an object only if not already present in the list.
 void adder(std::vector<boost::uuids::uuid>* scans, boost::uuids::uuid id) {
   if (std::find(scans->begin(), scans->end(), id) == scans->end()) {
     scans->push_back(id);
   }
 }
 
-// looks into an objects relations set and decides wheter to continue looking in its related objects or not
 template<class T>
 T* Thing::looker(Thing* start, std::vector<boost::uuids::uuid>* scanned) {
   T* result = nullptr;

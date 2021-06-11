@@ -69,7 +69,7 @@ int main()
     double si_cons = -5e+28;
     for (int i = 1; i < 5000; i++) {
       if (i >= 1000) si_cons = 0.;
-      gm.timestep(1e-7,{si_cons,0});
+      gm.timestep(1e-7,{si_cons,0.});
     }
     gm.print();
 

@@ -15,67 +15,51 @@ class Thing : public BaseClass {
     // dynamic relations
     std::vector<Relation*> relations;
 
-    // Find related objects through the entity relations hierarchy with class as given
-    // uses a list of the already scanned objects' uuids
+    /// Find related objects through the entity relations hierarchy with class as given
+    /// uses a list of the already scanned objects' uuids to keep track of the process,
+    /// looking into objects relations array and deciding wheter to continue looking in its related objects or not.
+    /// \param start pointer to the object from which the search starts.
+    /// \param scanned UUID pointer's array of the already scanned objects.
     template<class T> T* looker(Thing* start, std::vector<boost::uuids::uuid>* scanned);
 
 public:
+    /// Returns the object's name.
     virtual std::string getClassName() const { return "Thing"; }
 
-    // populate with relations
-    void addRelation(Relation* t) { relations.push_back(t); }
+    /// Adds a relation to the object by pushing a relation to the relations array.
+    /// \param r pointer to the relation to be added.
+    void addRelation(Relation* t) ;
 
-    // removes a relation
-    void removeRelation(Relation* r) {
-      int i = 0;
-      for (auto i : relations) {
-          if (r == i) {
-            break;
-          }
-        i += 1;
-      }
-      relations.erase(relations.begin()+i);
-    }
+    /// Removes a relation for given relation pointer from relations array.
+    /// \param r pointer to the relation to be removed.
+    void removeRelation(Relation* r) ;
 
-    // Create a relation to this entity
+    /// Create a relation to this entity and an object.
+    /// \param o1 object's pointer to be related to.
     template<class T, class T0>
-    void createRelationTo(T0* o1) {
+    void createRelationTo(T0* o1) ;
 
-        T* r = new T(this,o1);
-
-        this->addRelation(r);
-        o1->addRelation(r);
-    }
-
-    // Creates multiple relations to this entity at once
+    /// Creates multiple relations to this entity and multiple object (of the same type) at once.
+    /// \param o1 objects' pointer array to be related to.
     template<class T, class T0>
-    void createRelationsTo(std::vector<T0*> o1) {
-
-      for (auto i : o1) {
-        T* r = new T(this,i);
-
-        this->addRelation(r);
-        i->addRelation(r);
-      }
-    }
+    void createRelationsTo(std::vector<T0*> o1) ;
 
     // find a relation of a specific type
     // TODO: optimize search using multimap<std::string,Relation*>,
     //       getClassName() function for the key and a static_cast<T*>
-
-    // Gets all the entities with given relation to this entity
+    /// Gets all the entities with given relation to this entity.
     template<class T> std::vector<T*> getRelations();
 
-    // Find first related object through the entity relations hierarchy with class as given
+    /// Find the first related object through the entity relations hierarchy with class as given.
     template<class T> T* findNearest();
 
-    // Find all related objects through the entity relations hierarchy with class as given
+    /// Find all related objects through the entity relations hierarchy with class as given.
     template<class T> std::vector<T*> findAll();
 
-    // virtual run method for objects which requires it
+    /// virtual run method for objects which requires it.
     virtual void run() { std::cout << "what to run? eh?" << std::endl;  /* for test purposes */ };
 
-    // Gets the all the entities with the specified class related to given entity
+    /// Gets the all the entities with the specified class related to given entity.
     template<class T>
     std::vector<T*> getRelatedObjects();
 };
@@ -287,8 +271,8 @@ class SoftwareModel : public Model, public KnowledgeGenerator {
 public:
     std::string getClassName() const { return "SoftwareModel"; }
 
-    // Calls the model's/material relation's software implementation method.
-    // If multiple methods are defined for the same SoftwareModel object, the first added is selected;
+    /// Calls the model's/material relation's software implementation method.
+    /// If multiple methods are defined for the same SoftwareModel object, the first added is selected.
     void run() {
       findNearest<SoftwareModel>()->run();
     }

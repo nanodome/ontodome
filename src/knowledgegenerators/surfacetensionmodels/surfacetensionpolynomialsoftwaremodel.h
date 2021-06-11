@@ -5,13 +5,16 @@
 
 class SurfaceTensionPolynomialSoftwareModel : public SoftwareModel {
 private:
+    /// Core implementation of the model.
+    /// It stands fot the numerical representation of the model.
+    /// \param T species temperature [K].
     double impl(double T)
     {
         return (s[0] - (s[1]*(T - s[2])));
     }
 
-    std::vector<double> s;
-    double* sval;
+    std::vector<double> s; ///< Model coefficients array container.
+    double* sval; ///< Pointer to the species's property data type.
 
 public:
     SurfaceTensionPolynomialSoftwareModel() : SoftwareModel() {
@@ -27,14 +30,18 @@ public:
 
     std::string getClassName() const { return "SurfaceTensionPolynomialModel"; }
 
+    /// Returns a brief description of the software model by means of its mathematical representation
+    /// and the used parameters.
     std::string model_description() {
       return "a - b * ( T - c ) \nwhere a,b and c are the coefficients and T is the temperature.";
     }
 
+    /// Select the model coefficients based on Species Symbol and quantity pointer.
+    /// In order to save computational time on several calls of the run method, this
+    /// is done on first call only.
+    /// Then gathers all the necessary inputs through the relations graph and
+    /// runs the actual implementation ("impl").
     void run() {
-      // Select the model coefficients based on Species Symbol and quantity pointer
-      // In order to save computational time on several calls of the run method, this
-      // has to be done the first time only
       if (s.size() == 0) {
         std::string _name = findNearest<SingleComponentComposition>()->name;
         s = get_coeffs(_name);
@@ -48,6 +55,8 @@ public:
       *sval = impl(T);
     }
 
+    /// Return the coefficients needed by the model on given chemical element name.
+    /// \param name species name.
     std::vector<double> get_coeffs(std::string _name) const {
       if (_name == "Silicon") {
         return {0.732, 0.000086, 1685};
