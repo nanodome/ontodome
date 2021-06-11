@@ -13,7 +13,7 @@ public:
     {
         // Find and run first related Software object model
         // std::cout << "Software Model is: " << find<SoftwareModel>()->getClassName() << std::endl;
-        find<SoftwareModel>()->run();
+        findNearest<SoftwareModel>()->run();
     }
 };
 

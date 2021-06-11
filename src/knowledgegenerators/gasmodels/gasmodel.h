@@ -55,12 +55,12 @@ public:
     /// Run the model
     void initialize() {
       // Get the GasMixture conditions
-      auto gp = this->find<GasMixture>();
+      auto gp = this->findNearest<GasMixture>();
       specs = gp->getRelatedObjects<SingleComponentComposition>();
-      p = gp->find<Pressure>()->find<Real>()->data;
-      dpdt = gp->find<PressureTimeDerivative>()->find<Real>()->data;
-      T = gp->find<Temperature>()->find<Real>()->data;
-      dTdt = gp->find<TemperatureTimeDerivative>()->find<Real>()->data;
+      p = gp->findNearest<Pressure>()->findNearest<Real>()->data;
+      dpdt = gp->findNearest<PressureTimeDerivative>()->findNearest<Real>()->data;
+      T = gp->findNearest<Temperature>()->findNearest<Real>()->data;
+      dTdt = gp->findNearest<TemperatureTimeDerivative>()->findNearest<Real>()->data;
       w = get_molar_fractions();
 
       for(size_t i=0; i<specs.size(); ++i)
@@ -137,7 +137,7 @@ public:
           w.resize(specs.size());
           for (std::size_t i = 0; i < specs.size(); ++i)
           {
-            w[i] = specs[i]->mol->find<Real>()->data;
+            w[i] = specs[i]->mol->findNearest<Real>()->data;
           }
           return w;
       }
@@ -246,8 +246,8 @@ public:
       std::cout << w.sum() << '\t';
       std::cout << std::endl << std::endl;
 
-      std::cout << "T[K]\t" << "p[Pa]\t" << "n[#/m3]\t" << "gamma[1/s]\t" << std::endl;
-      std::cout << T << "\t" << p << "\t" << get_n() << "\t" << gamma << "\t" << std::endl << std::endl;
+      std::cout << "T[K]\t" << "p[Pa]\t" << "n[#/m3]\t  " << "gamma[1/s]\t" << std::endl;
+      std::cout << T << "\t" << p << "\t" << get_n() << "\t" << "  " << gamma << "\t" << std::endl << std::endl;
     };
 
 };

@@ -93,8 +93,8 @@ typedef struct raw_c_data {
 #include "base/thing.h"
 //#include "knowledgegenerators/knowledgegenerators.h"
 
-#include "knowledgegenerators/saturationpressuremodels/saturationpressurepolynomialmodel.h"
-#include "knowledgegenerators/surfacetensionmodels/surfacetensionpolynomialmodel.h"
+#include "knowledgegenerators/saturationpressuremodels/saturationpressurepolynomialsoftwaremodel.h"
+#include "knowledgegenerators/surfacetensionmodels/surfacetensionpolynomialsoftwaremodel.h"
 #include "knowledgegenerators/gasmodels/gasmodel.h"
 
 #endif // ONTODOME

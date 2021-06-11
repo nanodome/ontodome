@@ -36,20 +36,20 @@ int main()
 
 //	std::cout << sipsat.getLastRelation<hasModel>()->getRange()->getRelatedObjects<LatexExpression>()[0]->data << std::endl;
 
-    SurfaceTensionPolynomialModel stpm;
+    SurfaceTensionPolynomialSoftwareModel stpm;
     SurfaceTensionMaterialRelation stmr;
     SurfaceTension st(new Real(0.), new Unit("N/m"));
 
-    stmr.createRelationTo<hasSoftwareModel,SurfaceTensionPolynomialModel>(&stpm);
+    stmr.createRelationTo<hasSoftwareModel,SurfaceTensionPolynomialSoftwareModel>(&stpm);
     st.createRelationTo<hasMathematicalModel,SurfaceTensionMaterialRelation>(&stmr);
     si.createRelationTo<hasProperty,SurfaceTension>(&st);
     si.getRelatedObjects<SurfaceTension>()[0]->getRelatedObjects<SurfaceTensionMaterialRelation>()[0]->run();
 
-    SaturationPressurePolynomialModel sapm;
+    SaturationPressurePolynomialSoftwareModel sapm;
     SaturationPressureMaterialRelation samr;
     SaturationPressure sa(new Real(0.), new Unit("Pa"));
 
-    samr.createRelationTo<hasSoftwareModel,SaturationPressurePolynomialModel>(&sapm);
+    samr.createRelationTo<hasSoftwareModel,SaturationPressurePolynomialSoftwareModel>(&sapm);
     sa.createRelationTo<hasMathematicalModel,SaturationPressureMaterialRelation>(&samr);
     si.createRelationTo<hasProperty,SaturationPressure>(&sa);
     si.getRelatedObjects<SaturationPressure>()[0]->getRelatedObjects<SaturationPressureMaterialRelation>()[0]->run();

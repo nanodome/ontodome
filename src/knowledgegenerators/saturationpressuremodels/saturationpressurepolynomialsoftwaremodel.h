@@ -1,9 +1,9 @@
-#ifndef SATURATIONPRESSUREPOLYNOMIALMODEL_H
-#define SATURATIONPRESSUREPOLYNOMIALMODEL_H
+#ifndef SATURATIONPRESSUREPOLYNOMIALSOFTWAREMODEL_H
+#define SATURATIONPRESSUREPOLYNOMIALSOFTWAREMODEL_H
 
 #include "../saturationpressurematerialrelation.h"
 
-class SaturationPressurePolynomialModel : public SoftwareModel, public SaturationPressureMaterialRelation {
+class SaturationPressurePolynomialSoftwareModel : public SoftwareModel {
 private:
     double impl(double T)
     {
@@ -14,7 +14,7 @@ private:
     double* sval;
 
 public:
-    SaturationPressurePolynomialModel() : SoftwareModel() {
+    SaturationPressurePolynomialSoftwareModel() : SoftwareModel() {
 
 //      SaturationPressure* dummyS = nullptr;
 //      IUPAC* dummyI = nullptr;
@@ -36,13 +36,13 @@ public:
       // In order to save computational time on several calls of the run method, this
       // has to be done the first time only
       if (s.size() == 0) {
-        std::string _name = find<SingleComponentComposition>()->name;
+        std::string _name = findNearest<SingleComponentComposition>()->name;
         s = get_coeffs(_name);
-        sval = &find<SaturationPressure>()->getRelatedObjects<Real>()[0]->data;
+        sval = &findNearest<SaturationPressure>()->getRelatedObjects<Real>()[0]->data;
       }
 
       //Get the object's first related temperature
-      double T = find<Temperature>()->getRelatedObjects<Real>()[0]->data;
+      double T = findNearest<Temperature>()->getRelatedObjects<Real>()[0]->data;
 
       // Compute the value and push it to the Species' Saturation Pressure object
       *sval = impl(T);
@@ -62,4 +62,4 @@ public:
     }
 };
 
-#endif // SATURATIONPRESSUREPOLYNOMIALMODEL_H
+#endif // SATURATIONPRESSUREPOLYNOMIALSOFTWAREMODEL_H

@@ -67,7 +67,7 @@ public:
     template<class T> std::vector<T*> getRelations();
 
     // Find first related object through the entity relations hierarchy with class as given
-    template<class T> T* find();
+    template<class T> T* findNearest();
 
     // Find all related objects through the entity relations hierarchy with class as given
     template<class T> std::vector<T*> findAll();
@@ -130,12 +130,22 @@ public:
     std::string getClassName() const { return "State"; }
 };
 
-class ChemicalComposition : public State {
+class Symbolic : public Perspective {
 public:
-    std::string getClassName() const { return "ChemicalComposition"; }
+    std::string getClassName() const { return "Symbolic"; }
 };
 
-class Equation : public State {
+class Language : public Symbolic {
+public:
+    std::string getClassName() const { return "Language"; }
+};
+
+class Mathematical : public Language {
+public:
+    std::string getClassName() const { return "Mathematical"; }
+};
+
+class Equation : public State, public Mathematical {
 public:
     std::string getClassName() const { return "Equation"; }
 };
@@ -143,11 +153,6 @@ public:
 class MaterialRelation : public Equation {
 public:
     std::string getClassName() const { return "MaterialRelation"; }
-};
-
-class Symbolic : public Perspective {
-public:
-    std::string getClassName() const { return "Symbolic"; }
 };
 
 class SymbolicConstruct : public Symbolic {
@@ -180,14 +185,14 @@ public:
     std::string getClassName() const { return "Vector"; }
 };
 
-class Language : public Symbolic {
-public:
-    std::string getClassName() const { return "Language"; }
-};
-
 class Chemical : public Language {
 public:
     std::string getClassName() const { return "Chemical"; }
+};
+
+class ChemicalComposition : public State, public Chemical {
+public:
+    std::string getClassName() const { return "ChemicalComposition"; }
 };
 
 class ChemicalSpecies : public Chemical {
@@ -224,11 +229,6 @@ class Unit : public String
 public:
     Unit(std::string _unit) {data = _unit;}
     std::string getClassName() const { return "Unit"; }
-};
-
-class Mathematical : public Language {
-public:
-    std::string getClassName() const { return "Mathematical"; }
 };
 
 class Numerical : public Mathematical {
@@ -290,7 +290,7 @@ public:
     // Calls the model's/material relation's software implementation method.
     // If multiple methods are defined for the same SoftwareModel object, the first added is selected;
     void run() {
-      find<SoftwareModel>()->run();
+      findNearest<SoftwareModel>()->run();
     }
 };
 

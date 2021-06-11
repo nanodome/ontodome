@@ -1,9 +1,9 @@
-#ifndef SURFACETENSIONPOLYNOMIALMODEL_H
-#define SURFACETENSIONPOLYNOMIALMODEL_H
+#ifndef SURFACETENSIONPOLYNOMIALSOFTWAREMODEL_H
+#define SURFACETENSIONPOLYNOMIALSOFTWAREMODEL_H
 
 #include "../surfacetensionmaterialrelation.h"
 
-class SurfaceTensionPolynomialModel : public SoftwareModel, public SurfaceTensionMaterialRelation {
+class SurfaceTensionPolynomialSoftwareModel : public SoftwareModel {
 private:
     double impl(double T)
     {
@@ -14,7 +14,7 @@ private:
     double* sval;
 
 public:
-    SurfaceTensionPolynomialModel() : SoftwareModel() {
+    SurfaceTensionPolynomialSoftwareModel() : SoftwareModel() {
 
 //      SurfaceTension* dummyS = nullptr;
 //      IUPAC* dummyI = nullptr;
@@ -36,13 +36,13 @@ public:
       // In order to save computational time on several calls of the run method, this
       // has to be done the first time only
       if (s.size() == 0) {
-        std::string _name = find<SingleComponentComposition>()->name;
+        std::string _name = findNearest<SingleComponentComposition>()->name;
         s = get_coeffs(_name);
-        sval = &find<SurfaceTension>()->getRelatedObjects<Real>()[0]->data;
+        sval = &findNearest<SurfaceTension>()->getRelatedObjects<Real>()[0]->data;
       }
 
       //Get the object's first related temperature
-      double T = find<Temperature>()->getRelatedObjects<Real>()[0]->data;
+      double T = findNearest<Temperature>()->getRelatedObjects<Real>()[0]->data;
 
       // Compute the value and push it to the Species' Surface Tension object
       *sval = impl(T);
@@ -63,4 +63,4 @@ public:
 
 };
 
-#endif // SURFACETENSIONPOLYNOMIALMODEL_H
+#endif // SURFACETENSIONPOLYNOMIALSOFTWAREMODEL_H

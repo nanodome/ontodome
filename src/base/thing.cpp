@@ -72,7 +72,7 @@ T* Thing::looker(Thing* start, std::vector<boost::uuids::uuid>* scanned) {
 }
 
 template<class T>
-T* Thing::find() {
+T* Thing::findNearest() {
   auto* start = this; // the starting object will always be the objects from which the method is called
   T* result = nullptr;
   std::vector<boost::uuids::uuid> scanned; // list of scanned objects by means of UUID
