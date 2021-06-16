@@ -25,7 +25,7 @@ HEADERS += \
 	src/knowledgegenerators/surfacetensionmaterialrelation.h \
 	src/knowledgegenerators/saturationpressurematerialrelation.h \
 	#src/knowledgegenerators/gasmodels/gasmodelcv.h \
-	#src/knowledgegenerators/nanomodels/moments/momentmodelpratsinis.h \
-	#src/knowledgegenerators/nanomodels/nucleation/cnt.h \
+	src/knowledgegenerators/nanomodels/moments/momentmodelpratsinis.h \
+	src/knowledgegenerators/nanomodels/nucleation/cnt.h \
 	#src/knowledgegenerators/statemodels/stateinterpolator.h \
 	src/knowledgegenerators/gasmodels/gasmodel.h

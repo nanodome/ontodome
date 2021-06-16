@@ -33,13 +33,13 @@
 class GasModel  : public SoftwareModel {
 
 protected:
-    double p; ///< Gas phase pressure [Pa].
-    double T; ///< Gas phase temperature [K].
-    double dpdt; ///< Gas phase pressure time derivative [Pa/s].
-    double dTdt; ///< Gas phase temperature time derivative [K/s].
+    double* p; ///< Pointer to gas phase pressure [Pa].
+    double* T; ///< Pointer to gas phase temperature [K].
+    double* dpdt; ///< Pointer to gas phase pressure time derivative [Pa/s].
+    double* dTdt; ///< Pointer to gas phase temperature time derivative [K/s].
     double gamma; ///< expansion coefficient [1/s].
     std::vector<SingleComponentComposition*> specs; ///< vector containing all the species.
-    std::valarray<double> w; ///< Species molar fractions.
+    std::valarray<double*> w; ///< Species molar fractions.
     std::map<std::string,std::size_t> hash; ///< Hash map for name-to-index resolution.
     bool init = false; ///< Boolean value which stores whether the model is initialized or not.
 
@@ -54,15 +54,27 @@ public:
 
     /// Initialize the model by looking for the required inputs through the relations graph.
     void initialize() {
-      // Get the GasMixture conditions
-      auto gp = this->findNearest<GasMixture>();
-      specs = gp->getRelatedObjects<SingleComponentComposition>();
-      p = gp->findNearest<Pressure>()->findNearest<Real>()->data;
-      dpdt = gp->findNearest<PressureTimeDerivative>()->findNearest<Real>()->data;
-      T = gp->findNearest<Temperature>()->findNearest<Real>()->data;
-      dTdt = gp->findNearest<TemperatureTimeDerivative>()->findNearest<Real>()->data;
-      w = get_molar_fractions();
 
+      // Get the GasMixture conditions and components
+      GasMixture* gp = findNearest<GasMixture>();
+      specs = gp->getRelatedObjects<SingleComponentComposition>();
+      p = gp->findNearest<Pressure>()->onData();
+      dpdt = gp->findNearest<PressureTimeDerivative>()->onData();
+      T = gp->findNearest<Temperature>()->onData();
+      dTdt = gp->findNearest<TemperatureTimeDerivative>()->onData();
+
+      // Get the species molar fractions
+      if (!specs.empty())
+      {
+          w.resize(specs.size());
+          for (std::size_t i = 0; i < specs.size(); ++i)
+          {
+            w[i] = &specs[i]->mol->findNearest<Real>()->data;
+          }
+      }
+      else { abort(); }
+
+      // Populate the hash map for name to index resolution
       for(size_t i=0; i<specs.size(); ++i)
           hash[specs[i]->name] = i;
 
@@ -79,7 +91,9 @@ public:
 
       // Check if molar fraction vector total sum is smaller than 1 for consistency
       // A 1% excess is tolerated
-      if (w.sum() >= 1.*1.01) { abort(); }
+      double w_sum;
+      for (std::size_t i = 0; i < w.size(); ++i) { w_sum += *w[i]; }
+      if (w_sum >= 1.*1.01) { abort(); }
 
       // Check if consumption vector and available species number matches
       // If not, the code must abort
@@ -89,140 +103,135 @@ public:
       double n = get_n(); // number of monomers on m3
       double w_cons_tot = w_cons.sum(); // total number of consumed monomers
 
-      std::valarray<double> ns = w*n; // number of monomers for each species
+      std::valarray<double> ns(w.size()); // number of monomers for each species
+      for (std::size_t i = 0; i < w.size(); ++i) { ns[i] = *w[i] * n; }
 
-      gamma = w_cons_tot/n + dTdt/T - dpdt/p;
+      gamma = w_cons_tot/n + *dTdt / *T - *dpdt / *p;
 
       // simple explicit ODE timestep
       // equation is solved for the number density
       for (std::size_t i = 0; i < w_cons.size(); ++i) {
           ns[i] += (w_cons[i] - ns[i] * gamma) * dt; // Volume contraction
-          if (ns[i] < 0) abort();
+          if (ns[i] < 0) { abort(); }
       }
 
       // gas phase pressure and temperature update
-      T += dTdt*dt;
-      p += dpdt*dt;
+      *T += *dTdt * dt;
+      *p += *dpdt * dt;
 
       // molar fractions update
       n = get_n();
-      w = ns/n;
+      for (std::size_t i = 0; i < w.size(); ++i) { *w[i] = ns[i] / n; }
     }
-
-//    /// Push final state to GasMixture
-//    void add_temporal_state(Matter* gp,double time) {
-//      //create the state to push
-//      auto state = new Matter;
-
-//      //add the current GasMixture thermodynamic state
-//      state->createRelationsTo<hasProperty,Quantity>({
-//        new Pressure (new Scalar(p), new Unit("Pa")),
-//        new Temperature (new Scalar(T), new Unit("K")),
-//        new PressureTimeDerivative (new Scalar(dpdt), new Unit("Pa/s")),
-//        new TemperatureTimeDerivative (new Scalar(dTdt), new Unit("K/s"))});
-
-//      //update and add the current species state
-//      for (auto i : specs) {
-//          update<MolarFraction,Matter>(i,w[hash.at(i->getUuid())]);
-//      }
-//      state->createRelationsTo<hasPart,PolyatomicEntity>(specs);
-
-//      //push the state to GasMixture
-//      gp->push_state(state,time);
-//    }
-
-    /// Get the gas phase molar fractions array.
-    std::valarray<double> get_molar_fractions()
-    {
-      if (!specs.empty())
-      {
-          w.resize(specs.size());
-          for (std::size_t i = 0; i < specs.size(); ++i)
-          {
-            w[i] = specs[i]->mol->findNearest<Real>()->data;
-          }
-          return w;
-      }
-      else { abort(); }
-    }
-
-//    /// Update gas phase properties
-//    template <class T, class OBJ> void update(OBJ* obj, double val) const
-//    {
-//      auto vals = obj->template getRelatedObjects<T>();
-//      if (!vals.empty())
-//      {
-//          if (vals.size() > 1) {
-//              abort();
-//          }
-//          else
-//          {
-//              vals[0]->template getRelatedObjects<Real>()[0]->data = val;
-//          }
-//      }
-//      else { abort(); }
-//    }
 
     /// Get the expansion coefficient [1/s].
-    double get_gamma() const { return gamma; }
+    double get_gamma() {
+
+      // Initialize the model if not done before
+      if (init == false) { initialize(); }
+
+      return gamma; }
 
     /// Get the temperature [K].
-    double get_T() const { return T; }
+    double get_T() {
+
+      // Initialize the model if not done before
+      if (init == false) { initialize(); }
+
+      return *T; }
 
     /// Get the pressure [pa].
-    double get_p() const { return p; }
+    double get_p() {
+
+      // Initialize the model if not done before
+      if (init == false) { initialize(); }
+
+      return *p; }
 
     /// Get gas phase molecules average viscosity [Pa s].
-    double get_average_viscosity() const {
+    double get_average_viscosity() {
+
+      // Initialize the model if not done before
+      if (init == false) { initialize(); }
+
       double visc = 0;
 
       for(size_t i=0; i<w.size(); ++i)
-       visc += specs[i]->getRelatedObjects<Viscosity>()[0]->getRelatedObjects<Real>()[0]->data * w[i];
+       visc += specs[i]->getRelatedObjects<Viscosity>()[0]->getRelatedObjects<Real>()[0]->data * *w[i];
 
       return visc;
     }
 
     /// Get gas phase number density [#/m3].
-    double get_n() const { return p/(K_BOL*T); }
+    double get_n() {
+
+      // Initialize the model if not done before
+      if (init == false) { initialize(); }
+
+      return get_p()/(K_BOL* get_T()); }
 
     /// Get the superaturation ratio [#].
     /// \param spec selected species.
-    /// \param T temperature [K].
-    template <class TT> double get_S(TT* spec, double T) const {
+    template <class TT> double get_S(TT* spec) {
 
-      double m_frac = w[hash.at(spec->name)];
+      // Initialize the model if not done before
+      if (init == false) { initialize(); }
+
+      double m_frac = *w[hash.at(spec->name)];
       double ns = m_frac*get_n();
-      double n_sat = get_n_sat<TT>(spec,T);
+      double n_sat = get_n_sat<TT>(spec);
 
       return ns/n_sat;
     }
 
     /// Get the saturation density [#/m3].
     /// \param spec selected species.
-    /// \param T temperature [K].
-    template <class TT> double get_n_sat(TT* spec, double T) const {
+    template <class TT> double get_n_sat(TT* spec) {
+
+      // Initialize the model if not done before
+      if (init == false) { initialize(); }
+
+      // Update specie's saturation pressure
       spec->template getRelatedObjects<SaturationPressure>()[0]->template getRelatedObjects<SaturationPressureMaterialRelation>()[0]->run();
-      return spec->template getRelatedObjects<SaturationPressure>()[0]->template getRelatedObjects<Real>()[0]->data /(K_BOL*T); }
+
+      return spec->template getRelatedObjects<SaturationPressure>()[0]->template getRelatedObjects<Real>()[0]->data /(K_BOL*get_T()); }
 
     /// Get the gas phase mass density [kg/m3].
-    double get_density() const { return get_average_molecular_mass() * p/(K_BOL*T); }
+    double get_density() {
+
+      // Initialize the model if not done before
+      if (init == false) { initialize(); }
+
+      return get_average_molecular_mass() * get_p()/(K_BOL*get_T()); }
 
     /// Get the gas phase molecules average mass [kg].
-    double get_average_molecular_mass() const {
+    double get_average_molecular_mass() {
+
+      // Initialize the model if not done before
+      if (init == false) { initialize(); }
 
       double m = 0.;
 
       for(size_t i=0; i<w.size(); ++i)
-          m += specs[i]->getRelatedObjects<Mass>()[0]->getRelatedObjects<Real>()[0]->data * w[i];
+          m += specs[i]->getRelatedObjects<Mass>()[0]->getRelatedObjects<Real>()[0]->data * *w[i];
 
       return m;
     }
 
     /// Get the gas phase mean free path [m].
-    double get_mfp() const { return (get_average_viscosity()/p) * sqrt(M_PI*K_BOL*T/(2.*get_average_molecular_mass())); }
+    double get_mfp() {
+
+      // Initialize the model if not done before
+      if (init == false) { initialize(); }
+
+      return (get_average_viscosity()/get_p()) * sqrt(M_PI*K_BOL*get_T()/(2.*get_average_molecular_mass())); }
 
     /// Get the gas flux used for Langevin dynamics [kg/m2 s].
-    double get_gas_flux() const {
+    double get_gas_flux() {
+
+      // Initialize the model if not done before
+      if (init == false) { initialize(); }
+
       double flux = 0.;
 
       for(size_t i=0; i<w.size(); ++i) {
@@ -230,26 +239,29 @@ public:
           double m_gas = specs[i]->getRelatedObjects<Mass>()[0]->getRelatedObjects<Real>()[0]->data;
 
           // n_s * m_s * sqrt(3*K_BOL*T/m_s);
-          flux += w[i]*p/(K_BOL*T) * m_gas * sqrt(3*K_BOL*T/m_gas);
+          flux += *w[i]*get_p()/(K_BOL*get_T()) * m_gas * sqrt(3*K_BOL*get_T()/m_gas);
       }
-
       return flux;
     }
 
     /// Prints the gas phase most relevant properties.
     void print() {
+
+      // Initialize the model if not done before
+      if (init == false) { initialize(); }
+
+      std::cout << "Time: " << *findNearest<Time>()->onData() << std::endl;
+
       for(auto& sp : specs)
           std::cout << sp->name << '\t';
-      std::cout << "Sum" << '\t';
       std::cout << std::endl;
 
       for(auto& cs : w)
-          std::cout << cs << '\t';
-      std::cout << w.sum() << '\t';
+          std::cout << *cs << '\t';
       std::cout << std::endl << std::endl;
 
       std::cout << "T[K]\t" << "p[Pa]\t" << "n[#/m3]\t  " << "gamma[1/s]\t" << std::endl;
-      std::cout << T << "\t" << p << "\t" << get_n() << "\t" << "  " << gamma << "\t" << std::endl << std::endl;
+      std::cout << get_T() << "\t" << get_p() << "\t" << get_n() << "\t" << "  " << get_gamma() << "\t" << std::endl << std::endl;
     };
 
 };

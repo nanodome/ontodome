@@ -177,8 +177,24 @@ std::vector<T*> Thing::getRelatedObjects() {
    std::vector<T*> objs;
 
    for(auto i: relations) {
-      if(T* r0 = dynamic_cast<T*>(i->getRange())) {
+      if(T* r0 = dynamic_cast<T*>(avoider(this,i))) {
         objs.push_back(r0);
+      }
+   }
+
+   return objs;
+}
+
+template<class T>
+std::vector<T*> Thing::getLabeledRelatedObjects(std::string _lab) {
+   std::vector<T*> objs;
+
+   for (auto i: relations) {
+      if (T* r0 = dynamic_cast<T*>(avoider(this,i))) {
+        if ( r0->label == _lab) {
+          objs.push_back(r0);
+        }
+        else { abort(); }
       }
    }
 

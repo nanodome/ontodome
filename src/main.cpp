@@ -1,22 +1,23 @@
-#include <iostream>
-#include <vector>
-#include <algorithm>
-
 #include "ontodome.h"
 
 int main()
 {
+    // Setting a clock to keep track of computational time
     WallClock clock;
     clock.start();
 
+    // GasMixture initial state declaration
     GasMixture gas;
 
-    MolarFraction msi(new Real(0.6), new Unit("#"));
+    Time t(new Real(0), new Unit("s"));
+    gas.createRelationTo<hasProperty,Time>(&t);
+
+    MolarFraction msi(new Real(0.05), new Unit("#"));
     SingleComponentComposition si(&msi,SiliconSymbol::get_symbol());
-    MolarFraction mhe(new Real(0.4), new Unit("#"));
+    MolarFraction mhe(new Real(0.95), new Unit("#"));
     SingleComponentComposition he(&mhe,HeliumSymbol::get_symbol());
 
-    Temperature T(new Real(1200.), new Unit("K"));
+    Temperature T(new Real(4000.), new Unit("K"));
     Pressure p(new Real(101325.), new Unit("Pa"));
     PressureTimeDerivative dpdt(new Real(0.), new Unit("Pa/s"));
     TemperatureTimeDerivative dTdt(new Real(-1e+6), new Unit("K/s"));
@@ -27,15 +28,7 @@ int main()
     gas.createRelationTo<hasProperty,PressureTimeDerivative>(&dpdt);
     gas.createRelationTo<hasProperty,TemperatureTimeDerivative>(&dTdt);
 
-//	// KGDB
-//	KnowledgeGeneratorsDB kgdb;
-////	auto test = kgdb.ismodelfor("GasMixture");
-//	auto test = kgdb.ismodelfor(new GasMixture);
-
-//	std::cout << sisten.getLastRelation<hasModel>()->getRange()->getRelatedObjects<LatexExpression>()[0]->data << std::endl;
-
-//	std::cout << sipsat.getLastRelation<hasModel>()->getRange()->getRelatedObjects<LatexExpression>()[0]->data << std::endl;
-
+    // Surface Tension and Saturation Pressure settings
     SurfaceTensionPolynomialSoftwareModel stpm;
     SurfaceTensionMaterialRelation stmr;
     SurfaceTension st(new Real(0.), new Unit("N/m"));
@@ -52,25 +45,66 @@ int main()
     samr.createRelationTo<hasSoftwareModel,SaturationPressurePolynomialSoftwareModel>(&sapm);
     sa.createRelationTo<hasMathematicalModel,SaturationPressureMaterialRelation>(&samr);
     si.createRelationTo<hasProperty,SaturationPressure>(&sa);
-    si.getRelatedObjects<SaturationPressure>()[0]->getRelatedObjects<SaturationPressureMaterialRelation>()[0]->run();
 
+    // Si properties
+    Mass sim(new Real(28.0855*AMU), new Unit("kg"));
+    sim.createRelationTo<hasScalarProperty,SingleComponentComposition>(&si);
 
-    auto test = gas.findAll<SingleComponentComposition>();
+    BulkDensityLiquid sibl(new Real(2570.), new Unit("kg/m3"));
+    sibl.createRelationTo<hasScalarProperty,SingleComponentComposition>(&si);
 
-    std::cout << "Temp: " << gas.getRelatedObjects<Temperature>()[0]->getRelatedObjects<Real>()[0]->data << std::endl;
+    BulkDensitySolid sibs(new Real(2329.), new Unit("kg/m3"));
+    sibs.createRelationTo<hasScalarProperty,SingleComponentComposition>(&si);
 
-    std::cout << "Surface Tension value: " << si.getRelatedObjects<SurfaceTension>()[0]->getRelatedObjects<Real>()[0]->data << std::endl;
+    Temperature melp(new Real(1687.), new Unit("K"));
+    melp.addLabel("Melting Point");
+    melp.createRelationTo<hasScalarProperty,SingleComponentComposition>(&si);
 
-    std::cout << "Saturation Pressure value: " << si.getRelatedObjects<SaturationPressure>()[0]->getRelatedObjects<Real>()[0]->data << std::endl;
+    // Models settings
+    Time dt(new Real(5e-8), new Unit("s")); // simulation timestep. This definition is not ontologically correct
 
-    // Gas Model tests
     GasModel gm;
     gm.createRelationTo<hasModel,GasMixture>(&gas);
-    double si_cons = -5e+28;
-    for (int i = 1; i < 5000; i++) {
-      if (i >= 1000) si_cons = 0.;
-      gm.timestep(1e-7,{si_cons,0.});
+
+    ClassicalNucleationTheory cnt;
+    cnt.createRelationTo<hasModel,SingleComponentComposition>(&si);
+
+    MomentModelPratsinis mom;
+    mom.createRelationTo<hasModel,SingleComponentComposition>(&si);
+
+    // Example of usage for the moments method
+    double* ts = t.onData();
+    int PRINT_EVERY = 1000;
+    int iter = 0;
+
+    while ( *ts <= 0.02) {
+      if ( gm.get_T() < 600.) {
+        *dTdt.onData() = 0.;
+      }
+
+      double g_cons = mom.timestep(*dt.onData());
+
+      gm.timestep(*dt.onData(), {g_cons, 0.0});
+
+      *t.onData() += *dt.onData();
+      iter += 1;
+
+      if (counter_trigger(iter, PRINT_EVERY)) {
+
+          auto spec_name = si.name;
+          std::cout
+              << "Time= "<< *ts << '\t'
+              << "Temp= " << gm.get_T() << '\t'
+              << "Sat_" << spec_name << "= " << gm.get_S(&si) << '\t'
+              << spec_name << "_cons= " << g_cons << '\t'
+              << "Mean Diam_" << spec_name << "= " << mom.get_mean_diameter() << '\t'
+              << "M0_" << spec_name << "= " << mom.get_n_density() << '\t'
+              << "M1_" << spec_name << "= " << mom.get_M1() << '\t'
+              << "M2_" << spec_name << "= " << mom.get_M2() << '\t'
+              << std::endl << std::endl;
+      }
     }
+
     gm.print();
 
     clock.stop();

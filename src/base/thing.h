@@ -12,6 +12,7 @@
 
 class Thing : public BaseClass {
 
+protected:
     // dynamic relations
     std::vector<Relation*> relations;
 
@@ -23,8 +24,15 @@ class Thing : public BaseClass {
     template<class T> T* looker(Thing* start, std::vector<boost::uuids::uuid>* scanned);
 
 public:
+
     /// Returns the object's name.
     virtual std::string getClassName() const { return "Thing"; }
+
+    /// Custom label for distinguish objects of same class but different physical meaning
+    std::string label;
+
+    /// Add a label to the object
+    void addLabel(std::string _label) { label = _label; }
 
     /// Adds a relation to the object by pushing a relation to the relations array.
     /// \param r pointer to the relation to be added.
@@ -57,11 +65,15 @@ public:
     template<class T> std::vector<T*> findAll();
 
     /// virtual run method for objects which requires it.
-    virtual void run() { std::cout << "what to run? eh?" << std::endl;  /* for test purposes */ };
+    virtual void run() { std::cout << "what is looove!" << std::endl;  /* for test purposes */ };
 
     /// Gets the all the entities with the specified class related to given entity.
     template<class T>
     std::vector<T*> getRelatedObjects();
+
+    /// Gets the all the entities with the specified class and label, related to given entity.
+    template<class T>
+    std::vector<T*> getLabeledRelatedObjects(std::string label);
 };
 
 class EMMO : public Thing {
@@ -365,13 +377,22 @@ public:
 
 class Quantity : public State, public Metrological
 {
+private:
+  double numb;
+  std::string unit;
+
 public:
     Quantity(Real* _s, Unit* _u)
     {
+        numb = _s->data;
+        unit = _u->data;
         State::createRelationsTo<hasPart,Thing>({_u,_s});
     }
 
     std::string getClassName() const { return "Quantity"; }
+
+    double* onData() { return &numb; }
+    std::string* onUnit() { return &unit; }
 };
 
 class PhysicalQuantity : public Quantity
