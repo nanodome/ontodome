@@ -28,11 +28,11 @@ public:
     /// Returns the object's name.
     virtual std::string getClassName() const { return "Thing"; }
 
-    /// Custom label for distinguish objects of same class but different physical meaning
-    std::string label;
+//    /// Custom label for distinguish objects of same class but different physical meaning
+//    std::string label;
 
-    /// Add a label to the object
-    void addLabel(std::string _label) { label = _label; }
+//    /// Add a label to the object
+//    void addLabel(std::string _label) { label = _label; }
 
     /// Adds a relation to the object by pushing a relation to the relations array.
     /// \param r pointer to the relation to be added.
@@ -378,21 +378,21 @@ public:
 class Quantity : public State, public Metrological
 {
 private:
-  double numb;
-  std::string unit;
+  double* numb;
+  std::string* unit;
 
 public:
     Quantity(Real* _s, Unit* _u)
     {
-        numb = _s->data;
-        unit = _u->data;
+        numb = &_s->data;
+        unit = &_u->data;
         State::createRelationsTo<hasPart,Thing>({_u,_s});
     }
 
     std::string getClassName() const { return "Quantity"; }
 
-    double* onData() { return &numb; }
-    std::string* onUnit() { return &unit; }
+    double* onData() { return numb; }
+    std::string* onUnit() { return unit; }
 };
 
 class PhysicalQuantity : public Quantity
@@ -561,6 +561,14 @@ public:
     TemperatureTimeDerivative(Real* _s, Unit* _u) : DerivedQuantity(_s,_u) {}
 
     std::string getClassName() const { return "TemperatureTimeDerivative"; }
+};
+
+class MeltingPoint : public Temperature
+{
+public:
+    MeltingPoint(Real* _s, Unit* _u) : Temperature(_s,_u) {}
+
+    std::string getClassName() const { return "MeltingPoint"; }
 };
 
 class SingleComponentComposition : public ChemicalComposition {

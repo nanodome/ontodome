@@ -26,13 +26,12 @@
 #include <iostream>
 #include <fstream>
 
-#include "../../../ontodome.h"
-#include "../../../base/thing.h"
+#include "moments.h"
 
 /// Implementation of the Pratsinis 1988 model.
 /// Simultaneous Nucleation, Condensation and Coagulation in Aerosol Reactors,
 /// S.E. Pratsinis, Journal of Colloid and Interface Science, Vol. 124, No. 2, August 1988
-class MomentModelPratsinis : public SoftwareModel {
+class MomentModelPratsinis : public MomentsModel {
 
 protected:
     double M0; ///< Nanoparticles number density [#/m3]
@@ -48,16 +47,14 @@ protected:
     double M1_cond; ///< M1 source term only due to condensation [1/m2/s]
     SingleComponentComposition* species; ///< Pointer to the species for which the Moment method instance is defined
     double* T; ///< Pointer to gas temperature
-    GasModel* gasmodel; ///< Pointer to currently used GasModel
-
-    //PER IL MOMENTO LO BLOCCO COSI'. IN FUTURO ANDRA' CERCATO IN BASE AGLI INPUT E AGLI OUTPUT DI UN MODELLO
-    ClassicalNucleationTheory* nt; ///< Pointer to currently nucleation theory
+    GasModels* gasmodel; ///< Pointer to currently used GasModel
+    NucleationTheory* nt; ///< Pointer to currently used nucleation theory
 
     bool init = false; ///< Boolean value which stores whether the model is initialized or not.
 
 public:
     /// Standard constructor.
-    MomentModelPratsinis() : SoftwareModel() {
+    MomentModelPratsinis() : MomentsModel() {
       // List of compatible entities
 //      createRelationTo<isModelFor,Thing>(new HomonuclearMolecule);
 //      createRelationTo<isModelFor,Thing>(new HeteronuclearMolecule);
@@ -71,7 +68,7 @@ public:
     }
 
     /// Constructor with initialization for the moments
-    MomentModelPratsinis(double _M0, double _M1, double _M2) : SoftwareModel() {
+    MomentModelPratsinis(double _M0, double _M1, double _M2) : MomentsModel() {
 //      // List of compatible entities
 //      createRelationTo<isModelFor,Thing>(new PolyatomicEntity);
 
@@ -82,30 +79,31 @@ public:
       M0 = _M0; M1 = _M1; M2 = _M2;
     }
 
+protected:
     /// Initialize the method - attempt to save computational time
     void initialize() {
 
       // Get all the required inputs
       species = findNearest<SingleComponentComposition>();
 
-      //PER IL MOMENTO LO BLOCCO COSI'. IN FUTURO ANDRA' CERCATO IN BASE AGLI INPUT E AGLI OUTPUT DI UN MODELLO
-      nt = findNearest<ClassicalNucleationTheory>();
+      nt = findNearest<NucleationTheory>();
 
-      gasmodel = findNearest<GasModel>();
-      s_mass = species->findNearest<Mass>()->findNearest<Real>()->data;
+      gasmodel = findNearest<GasModels>();
+      s_mass = *species->findNearest<Mass>()->onData();
 
-      T = &gasmodel->findNearest<Temperature>()->getRelatedObjects<Real>()[0]->data;
+      T = gasmodel->findNearest<Temperature>()->onData();
 
       //PER IL MOMENTO LO USO COSI'. IN FUTURO ANDRA' CERCATO IN BASE AGLI INPUT E AGLI OUTPUT DI UN MODELLO
       s_m_vol = nt->get_m_volume();
 
-      s_bulk_density_liq = species->getRelatedObjects<BulkDensityLiquid>()[0]->getRelatedObjects<Real>()[0]->data;
-      s_bulk_density_sol = species->getRelatedObjects<BulkDensitySolid>()[0]->getRelatedObjects<Real>()[0]->data;
-      s_T_melt = species->getLabeledRelatedObjects<Temperature>("Melting Point")[0]->getRelatedObjects<Real>()[0]->data;
+      s_bulk_density_liq = *species->getRelatedObjects<BulkDensityLiquid>()[0]->onData();
+      s_bulk_density_sol = *species->getRelatedObjects<BulkDensitySolid>()[0]->onData();
+      s_T_melt = *species->getRelatedObjects<MeltingPoint>()[0]->onData();
 
       init = true;
     }
 
+public:
     /// Nanoparticle density [#/m3]
     double get_n_density() { return M0; }
 

@@ -56,12 +56,11 @@ int main()
     BulkDensitySolid sibs(new Real(2329.), new Unit("kg/m3"));
     sibs.createRelationTo<hasScalarProperty,SingleComponentComposition>(&si);
 
-    Temperature melp(new Real(1687.), new Unit("K"));
-    melp.addLabel("Melting Point");
+    MeltingPoint melp(new Real(1687.), new Unit("K"));
     melp.createRelationTo<hasScalarProperty,SingleComponentComposition>(&si);
 
     // Models settings
-    Time dt(new Real(5e-8), new Unit("s")); // simulation timestep. This definition is not ontologically correct
+    Time dt(new Real(1e-7), new Unit("s")); // simulation timestep. This definition is not ontologically correct
 
     GasModel gm;
     gm.createRelationTo<hasModel,GasMixture>(&gas);

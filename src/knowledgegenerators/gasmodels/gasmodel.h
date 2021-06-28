@@ -25,12 +25,12 @@
 #include <valarray>
 #include <map>
 
-#include "../../ontodome.h"
+#include "gasmodels.h"
 
 /// Class implementing the gas phase.
 /// The gas phase is univocally determined knowing pressure, temperature and species molar fractions.
 /// Access to species properties is provided by hasPart relations defined in the GasMixture object.
-class GasModel  : public SoftwareModel {
+class GasModel  : public GasModels {
 
 protected:
     double* p; ///< Pointer to gas phase pressure [Pa].
@@ -39,9 +39,6 @@ protected:
     double* dTdt; ///< Pointer to gas phase temperature time derivative [K/s].
     double gamma; ///< expansion coefficient [1/s].
     std::vector<SingleComponentComposition*> specs; ///< vector containing all the species.
-    std::valarray<double*> w; ///< Species molar fractions.
-    std::map<std::string,std::size_t> hash; ///< Hash map for name-to-index resolution.
-    bool init = false; ///< Boolean value which stores whether the model is initialized or not.
 
 public:
 
@@ -52,6 +49,7 @@ public:
 
     std::string getClassName() const { return "Gas Continuum Model"; }
 
+protected:
     /// Initialize the model by looking for the required inputs through the relations graph.
     void initialize() {
 
@@ -69,7 +67,7 @@ public:
           w.resize(specs.size());
           for (std::size_t i = 0; i < specs.size(); ++i)
           {
-            w[i] = &specs[i]->mol->findNearest<Real>()->data;
+            w[i] = specs[i]->mol->onData();
           }
       }
       else { abort(); }
@@ -82,6 +80,7 @@ public:
       init = true;
     }
 
+public:
     /// Run the model for a given timestep and species consumption array.
     /// \param dt temporal step [s].
     /// \param w_cons species consumption array [#/m3/s].
@@ -91,7 +90,7 @@ public:
 
       // Check if molar fraction vector total sum is smaller than 1 for consistency
       // A 1% excess is tolerated
-      double w_sum;
+      double w_sum = 0;
       for (std::size_t i = 0; i < w.size(); ++i) { w_sum += *w[i]; }
       if (w_sum >= 1.*1.01) { abort(); }
 
@@ -157,7 +156,7 @@ public:
       double visc = 0;
 
       for(size_t i=0; i<w.size(); ++i)
-       visc += specs[i]->getRelatedObjects<Viscosity>()[0]->getRelatedObjects<Real>()[0]->data * *w[i];
+       visc += *specs[i]->getRelatedObjects<Viscosity>()[0]->onData() * *w[i];
 
       return visc;
     }
@@ -194,7 +193,8 @@ public:
       // Update specie's saturation pressure
       spec->template getRelatedObjects<SaturationPressure>()[0]->template getRelatedObjects<SaturationPressureMaterialRelation>()[0]->run();
 
-      return spec->template getRelatedObjects<SaturationPressure>()[0]->template getRelatedObjects<Real>()[0]->data /(K_BOL*get_T()); }
+      return *spec->template getRelatedObjects<SaturationPressure>()[0]->template onData() /(K_BOL*get_T());
+    }
 
     /// Get the gas phase mass density [kg/m3].
     double get_density() {
@@ -213,7 +213,7 @@ public:
       double m = 0.;
 
       for(size_t i=0; i<w.size(); ++i)
-          m += specs[i]->getRelatedObjects<Mass>()[0]->getRelatedObjects<Real>()[0]->data * *w[i];
+          m += *specs[i]->getRelatedObjects<Mass>()[0]->onData() * *w[i];
 
       return m;
     }
@@ -236,7 +236,7 @@ public:
 
       for(size_t i=0; i<w.size(); ++i) {
 
-          double m_gas = specs[i]->getRelatedObjects<Mass>()[0]->getRelatedObjects<Real>()[0]->data;
+          double m_gas = *specs[i]->getRelatedObjects<Mass>()[0]->onData();
 
           // n_s * m_s * sqrt(3*K_BOL*T/m_s);
           flux += *w[i]*get_p()/(K_BOL*get_T()) * m_gas * sqrt(3*K_BOL*get_T()/m_gas);

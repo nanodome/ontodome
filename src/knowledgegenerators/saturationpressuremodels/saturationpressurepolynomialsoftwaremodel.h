@@ -1,7 +1,7 @@
 #ifndef SATURATIONPRESSUREPOLYNOMIALSOFTWAREMODEL_H
 #define SATURATIONPRESSUREPOLYNOMIALSOFTWAREMODEL_H
 
-#include "../saturationpressurematerialrelation.h"
+#include "saturationpressurematerialrelation.h"
 
 class SaturationPressurePolynomialSoftwareModel : public SoftwareModel {
 private:

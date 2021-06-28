@@ -11,7 +11,13 @@ SOURCES += \
 	src/tools/utilities.cpp
 
 HEADERS += \
+	src/knowledgegenerators/gasmodels/gasmodels.h \
+	src/knowledgegenerators/nanomodels/moments/moments.h \
+	src/knowledgegenerators/nanomodels/nucleation/classicalnucleationtheory.h \
+	src/knowledgegenerators/nanomodels/nucleation/nucleation.h \
+	src/knowledgegenerators/saturationpressuremodels/saturationpressurematerialrelation.h \
 	src/knowledgegenerators/saturationpressuremodels/saturationpressurepolynomialsoftwaremodel.h \
+	src/knowledgegenerators/surfacetensionmodels/surfacetensionmaterialrelation.h \
 	src/knowledgegenerators/surfacetensionmodels/surfacetensionpolynomialsoftwaremodel.h \
 	src/ontodome.h \
 	src/tools/clock.h \
@@ -24,7 +30,6 @@ HEADERS += \
 	src/knowledgegenerators/knowledgegenerators.h \
 	src/knowledgegenerators/surfacetensionmaterialrelation.h \
 	src/knowledgegenerators/saturationpressurematerialrelation.h \
-	#src/knowledgegenerators/gasmodels/gasmodelcv.h \
 	src/knowledgegenerators/nanomodels/moments/momentmodelpratsinis.h \
 	src/knowledgegenerators/nanomodels/nucleation/cnt.h \
 	#src/knowledgegenerators/statemodels/stateinterpolator.h \

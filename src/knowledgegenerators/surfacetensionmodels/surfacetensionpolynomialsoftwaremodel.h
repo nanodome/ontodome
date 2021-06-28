@@ -1,7 +1,7 @@
 #ifndef SURFACETENSIONPOLYNOMIALSOFTWAREMODEL_H
 #define SURFACETENSIONPOLYNOMIALSOFTWAREMODEL_H
 
-#include "../surfacetensionmaterialrelation.h"
+#include "surfacetensionmaterialrelation.h"
 
 class SurfaceTensionPolynomialSoftwareModel : public SoftwareModel {
 private:
