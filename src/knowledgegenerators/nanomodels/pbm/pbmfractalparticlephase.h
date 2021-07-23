@@ -40,14 +40,14 @@ public:
 
 private:
 
-    double nucleation(double j, SingleComponentComposition s);
+    double nucleation(double j, SingleComponentComposition* s);
 };
 
 template<typename A>
-double PBMFractalParticlePhase<A>::nucleation(double j, SingleComponentComposition s) {
+double PBMFractalParticlePhase<A>::nucleation(double j, SingleComponentComposition* s) {
 
         // create a new aggregate
-        std::shared_ptr<Particle> p0(new Particle(j,&s));
+        std::shared_ptr<Particle> p0(new Particle(j,s));
         std::shared_ptr<A> a0(new A(D_f,p0));
 
         this->aggregates.push_back(a0);
