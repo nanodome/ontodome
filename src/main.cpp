@@ -71,12 +71,72 @@ int main()
     MomentModelPratsinis mom;
     mom.createRelationTo<hasModel,SingleComponentComposition>(&si);
 
+    PBMFractalParticlePhase<PBMAggregate<Particle>> pp(1.61, 5.0e-16);
+    pp.createRelationTo<hasModel,SingleComponentComposition>(&si);
+    // set max and min number of aggregates
+    pp.set_max_aggregates(2000);
+    pp.set_min_aggregates(1990);
+
     // Example of usage for the moments method
-    double* ts = t.onData();
     int PRINT_EVERY = 1000;
     int iter = 0;
 
-    while ( *ts <= 0.02) {
+    // PBM loop
+    // loop over timesteps
+    while(*t.onData() < 0.002) {
+
+      if (gm.get_T() < 300)
+      { *dTdt.onData() = 0; }
+
+      // species source term for the gas phase
+      double g_si = 0.0;
+
+      // calculate the timestep using an exponential waiting time
+      double R_tot = pp.get_total_processes_rate(&gm,&cnt);
+      double rho = ndm::uniform_double_distr(ndm::rand_gen);
+
+      // exponential waiting time
+      double dt = -log(rho)/R_tot;
+
+      // Strang first step
+      gm.timestep(dt/2.0,{0.0,0.0});
+      pp.volume_expansion(dt/2.0,&gm);
+
+      // Strang second step
+      g_si += pp.timestep(dt,&gm,&cnt,&si);
+      gm.timestep(dt,{-g_si,0.0});
+
+      // Strang third step
+      gm.timestep(dt/2.0,{0.0,0.0});
+      pp.volume_expansion(dt/2.0,&gm);
+
+  //            *t.onData() += *dt.onData();
+      iter++;
+      if(counter_trigger(iter,PRINT_EVERY)) {
+
+          clock.stop();
+
+          std::cout << *t.onData() << '\t'				// time
+                    << gm.get_T() << '\t'					// temperature
+                    << gm.get_S(&si) << '\t'				// supersaturation (S)
+                    << cnt.nucleation_rate() << '\t'			// J
+                    << gm.get_n() << '\t'					// ns
+                    << cnt.stable_cluster_diameter() << '\t'		// j
+                    << pp.get_mean_particles_number() << '\t'		// N_m
+                    << pp.get_mean_sintering_level() << '\t'		//
+                    << pp.get_aggregates_mean_spherical_diameter() << '\t'
+                    << pp.get_aggregates_number() << '\t'
+                    << pp.get_aggregates_density() << '\t'
+                    << pp.get_volume() << '\t'
+                    << pp.get_mean_fractal_dimension() << '\t'
+                    << clock.interval()/PRINT_EVERY << std::endl;
+
+          clock.start();
+      }
+      }
+
+
+/*    while ( *t.onData() <= 0.02) {
       if ( gm.get_T() < 600.) {
         *dTdt.onData() = 0.;
       }
@@ -92,7 +152,7 @@ int main()
 
           auto spec_name = si.name;
           std::cout
-              << "Time= "<< *ts << '\t'
+              << "Time= "<< *t.onData() << '\t'
               << "Temp= " << gm.get_T() << '\t'
               << "Sat_" << spec_name << "= " << gm.get_S(&si) << '\t'
               << spec_name << "_cons= " << g_cons << '\t'
@@ -103,7 +163,7 @@ int main()
               << std::endl << std::endl;
       }
     }
-
+*/
     gm.print();
 
     clock.stop();

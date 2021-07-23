@@ -41,7 +41,6 @@ protected:
     std::vector<SingleComponentComposition*> specs; ///< vector containing all the species.
 
 public:
-
     GasModel()
     {
 //      createRelationTo<hasModel,GasMixture>(new GasMixture);

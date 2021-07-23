@@ -22,81 +22,18 @@
 #ifndef ONTODOME
 #define ONTODOME
 
-#include <list>
-#include <vector>
-#include <string>
-
-// Useful constants
-#define K_BOL 1.380650524e-23    // [J/K]
-#define E_CHARGE 1.602176565e-19 // [C]
-#define AMU 1.660538921e-27      // [kg]
-#define N_AVO 6.0221408571e23    // [#/mol]
-
-
-// Normalization units
-#define MASS_UNIT 1.66053892e-027   //kg (= 1 amu)
-#define LENGTH_UNIT 1.0e-010        //m (= 1 angstrom)
-#define TIME_UNIT 1.01805055e-014   //s
-#define ENERGY_UNIT 1.60217657e-019 //J (= 1 ev)
-#define FORCE_UNIT 1.60217657e-009  //N
-#define TEMPERATURE_UNIT (1.0/8.617332478e-5) //K
-
-
-/// Useful math macro
-#define square(x) ((x)*(x))
-
-
-// activate event log
-//#define VERBOSE
-
-// activate DEBUG prints
-//#define NANO_DEBUG
-
-// Parameters used for SHAKE algorithm
-#define SHAKE_CONV_CRITERION 1e-4
-#define SHAKE_MAX_ITERATIONS 500
-
-// struct for raw data from a configuration file;
-typedef struct raw_c_data {
-
-	// printing and savings/reaching data
-	int SAVE_STEPS = -1;
-	int PRINT_STEPS = -1;;
-	int SAVE_VTK_STEPS = -1;
-	std::string streams_path = "";
-	std::string save_path = "";
-	std::string vtk_save = "";
-	std::string stream_save_path = "";
-	std::list<std::string> params_to_print;
-	// conditions
-	std::list<std::string> c_species;
-	std::list<double> c_s_molar_fraction;
-	std::list<std::string> b_species;
-	std::list<double> b_s_molar_fraction;
-	double pressure = -1;
-	double start_temp = -1;
-	double end_temp = -1;
-	double end_time = -1;
-	double t_grad = -1;
-	double volume = -1;
-	//models
-	std::string model_type;
-	int max_part = -1;
-	int min_part = -1;
-	double max_time_step = -1;
-	double frac_dim = -1;
-	double dt = -1;
-}raw_configuration_data;
+#include "base/ontodome_base.h"
 
 #include "tools/clock.h"
 #include "tools/utilities.h"
 #include "base/thing.h"
-//#include "knowledgegenerators/knowledgegenerators.h"
 
+//#include "knowledgegenerators/knowledgegenerators.h"
 #include "knowledgegenerators/saturationpressuremodels/saturationpressurepolynomialsoftwaremodel.h"
 #include "knowledgegenerators/surfacetensionmodels/surfacetensionpolynomialsoftwaremodel.h"
 #include "knowledgegenerators/gasmodels/gasmodel.h"
 #include "knowledgegenerators/nanomodels/nucleation/classicalnucleationtheory.h"
 #include "knowledgegenerators/nanomodels/moments/momentmodelpratsinis.h"
+#include "knowledgegenerators/nanomodels/pbm/pbmfractalparticlephase.h"
 
 #endif // ONTODOME
