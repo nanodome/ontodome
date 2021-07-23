@@ -28,11 +28,11 @@
 #include <stdexcept>
 #include <iostream>
 
-#include "../../../ontodome.h"
+#include "nucleation.h"
 
 /// Classical Nucleation Theory (CNT) implementation. This class is the implementation of the
 /// CNT whose rates are calculated using the properties of the condensing species.
-class ClassicalNucleationTheory : public SoftwareModel {
+class ClassicalNucleationTheory : public NucleationTheory {
 
 protected:
   double s_mass; ///< Species mass [kg]
@@ -43,7 +43,7 @@ protected:
   SurfaceTensionMaterialRelation* stenm; ///< Pointer to the Material relation used for Surface Tension
   SaturationPressureMaterialRelation* ssatm; ///< Pointer to the Material relation used for Saturation Pressure
   Temperature* T; ///< Pointer to gas temperature
-  GasModel* gasmodel; ///< Pointer to currently used GasModel
+  GasModels* gasmodel; ///< Pointer to currently used GasModel
   bool init = false; ///< Boolean value which stores whether the model is initialized or not.
 
 public:
@@ -56,23 +56,25 @@ public:
 //      createRelationTo<requiresModelFor,Thing>(new GasMixture);
     };
 
+protected:
     /// Model initializer
     void initialize() {
       // Get all the required inputs from relations graph
-      gasmodel = findNearest<GasModel>();
+      gasmodel = findNearest<GasModels>();
       T = gasmodel->findNearest<Temperature>();
       species = findNearest<SingleComponentComposition>();
       sten = species->findNearest<SurfaceTension>();
       ssat = species->findNearest<SaturationPressure>();
       stenm = sten->findNearest<SurfaceTensionMaterialRelation>();
       ssatm = ssat->findNearest<SaturationPressureMaterialRelation>();
-      s_mass = species->findNearest<Mass>()->getRelatedObjects<Real>()[0]->data;
-      s_bulk_liq = species->findNearest<BulkDensityLiquid>()->getRelatedObjects<Real>()[0]->data;
+      s_mass = *species->findNearest<Mass>()->onData();
+      s_bulk_liq = *species->findNearest<BulkDensityLiquid>()->onData();
 
       // Mark the object as initialized
       init = true;
     }
 
+public:
     /// Primary particles formation rate [#/m3 s]
     double nucleation_rate() {
 
@@ -80,7 +82,7 @@ public:
       if (init == false) { initialize(); }
 
       // Get Temperature value
-      double T1 = T->getRelatedObjects<Real>()[0]->data;
+      double T1 = *T->onData();
 
       double rate = 0.;
       //unsigned int fp_control_state = _controlfp(_EM_INEXACT, _MCW_EM);
@@ -93,7 +95,7 @@ public:
 
           // Update Surface Tension value on species
           stenm->run();
-          double s_s_ten = sten->getRelatedObjects<Real>()[0]->data;
+          double s_s_ten = *sten->onData();
 
           // Normalized surface tension
           double theta = s_s_ten*get_m_surface()/(K_BOL*T1);
@@ -124,7 +126,7 @@ public:
       if (init == false) { initialize(); }
 
       // Get Temperature value
-      double T1 = T->getRelatedObjects<Real>()[0]->data;
+      double T1 = *T->onData();
 
       // Default cluser number
       double c_size = 1.0;
@@ -138,7 +140,7 @@ public:
       // Check if species is saturated; if not, the stable size has no sense and is set to one
       // meaning that the smallest cluster is a single monomer (no-cluster)
       if(S>1) {
-          c_size = 2.0 * get_m_surface() * sten->getRelatedObjects<Real>()[0]->data / (3*K_BOL*T1*log(S));
+          c_size = 2.0 * get_m_surface() * *sten->onData() / (3*K_BOL*T1*log(S));
           c_size = pow(c_size,3);
       }
 
@@ -161,7 +163,7 @@ public:
       if (init == false) { initialize(); }
 
       // Get Temperature value
-      double T1 = T->getRelatedObjects<Real>()[0]->data;
+      double T1 = *T->onData();
 
       // Get the supersaturation ration from GasPhase
       double S = gasmodel->get_S(species);
@@ -169,7 +171,7 @@ public:
       // Update Saturation Pressure's value on species
       ssatm->run();
 
-      return ssat->getRelatedObjects<Real>()[0]->data*(S-1.0) / sqrt(2*M_PI*s_mass*K_BOL*T1);
+      return *ssat->onData() * (S-1.0) / sqrt(2*M_PI*s_mass*K_BOL*T1);
     }
 
     /// Returns the molecular Volume [m3]

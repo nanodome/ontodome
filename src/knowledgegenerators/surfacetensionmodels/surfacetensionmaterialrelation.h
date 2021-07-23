@@ -2,7 +2,7 @@
 #define SURFACETENSIONMATERIALRELATION_H
 
 //#include "knowledgegenerators.h"
-#include "../base/thing.h"
+#include "../../base/thing.h"
 
 class SurfaceTensionMaterialRelation : public MaterialRelation {
 

@@ -2,7 +2,7 @@
 #define SATURATIONPRESSUREMATERIALRELATION_H
 
 //#include "knowledgegenerators.h"
-#include "../base/thing.h"
+#include "../../base/thing.h"
 
 class SaturationPressureMaterialRelation : public MaterialRelation {
 
