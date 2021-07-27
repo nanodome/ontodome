@@ -48,17 +48,6 @@ protected:
     /// Container for the aggregates
     std::list<std::shared_ptr<A>> aggregates;
 
-    GasModels* gp;
-    NucleationTheory* nt;
-    SingleComponentComposition* sp;
-
-    void initialize() {
-      gp = findNearest<GasModels>();
-      nt = findNearest<NucleationTheory>();
-      sp = findNearest<SingleComponentComposition>();
-
-    }
-
 public:
 
     /// Constructor with a volume equivalent to a cube of 1um side

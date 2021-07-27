@@ -20,7 +20,7 @@ int main()
     Temperature T(new Real(4000.), new Unit("K"));
     Pressure p(new Real(101325.), new Unit("Pa"));
     PressureTimeDerivative dpdt(new Real(0.), new Unit("Pa/s"));
-    TemperatureTimeDerivative dTdt(new Real(-1e+6), new Unit("K/s"));
+    TemperatureTimeDerivative dTdt(new Real(-1e+7), new Unit("K/s"));
 
     gas.createRelationsTo<hasPart,SingleComponentComposition>({&si,&he});
     gas.createRelationTo<hasProperty,Temperature>(&T);
@@ -83,10 +83,10 @@ int main()
 
     // PBM loop
     // loop over timesteps
-    while(*t.onData() < 0.002) {
+    while(*t.onData() < 0.005) {
 
-      if (gm.get_T() < 300)
-      { *dTdt.onData() = 0; }
+      if (gm.get_T() < 300.)
+      { *dTdt.onData() = 0.; }
 
       // species source term for the gas phase
       double g_si = 0.0;
@@ -96,46 +96,48 @@ int main()
       double rho = ndm::uniform_double_distr(ndm::rand_gen);
 
       // exponential waiting time
-      double dt = -log(rho)/R_tot;
+      double dt_ = -log(rho)/R_tot;
 
       // Strang first step
-      gm.timestep(dt/2.0,{0.0,0.0});
-      pp.volume_expansion(dt/2.0,&gm);
+      gm.timestep(dt_/2.0,{0.0,0.0});
+      pp.volume_expansion(dt_/2.0,&gm);
 
       // Strang second step
-      g_si += pp.timestep(dt,&gm,&cnt,&si);
-      gm.timestep(dt,{-g_si,0.0});
+      g_si += pp.timestep(dt_,&gm,&cnt,&si);
+      gm.timestep(dt_,{-g_si,0.0});
 
       // Strang third step
-      gm.timestep(dt/2.0,{0.0,0.0});
-      pp.volume_expansion(dt/2.0,&gm);
+      gm.timestep(dt_/2.0,{0.0,0.0});
+      pp.volume_expansion(dt_/2.0,&gm);
 
-  //            *t.onData() += *dt.onData();
+      *t.onData() += dt_;
+
       iter++;
       if(counter_trigger(iter,PRINT_EVERY)) {
 
           clock.stop();
 
-          std::cout << *t.onData() << '\t'				// time
-                    << gm.get_T() << '\t'					// temperature
-                    << gm.get_S(&si) << '\t'				// supersaturation (S)
-                    << cnt.nucleation_rate() << '\t'			// J
-                    << gm.get_n() << '\t'					// ns
-                    << cnt.stable_cluster_diameter() << '\t'		// j
-                    << pp.get_mean_particles_number() << '\t'		// N_m
-                    << pp.get_mean_sintering_level() << '\t'		//
-                    << pp.get_aggregates_mean_spherical_diameter() << '\t'
-                    << pp.get_aggregates_number() << '\t'
-                    << pp.get_aggregates_density() << '\t'
-                    << pp.get_volume() << '\t'
-                    << pp.get_mean_fractal_dimension() << '\t'
-                    << clock.interval()/PRINT_EVERY << std::endl;
+          std::cout << "Time: " << *t.onData() << '\t'				// time
+                    << "T: " << gm.get_T() << '\t'					// temperature
+                    << "S: " << gm.get_S(&si) << '\t'				// supersaturation (S)
+                    << "NR: " << cnt.nucleation_rate() << '\t'			// J
+                    << "n: " << gm.get_n() << '\t'					// ns
+                    << "SCD: " << cnt.stable_cluster_diameter() << '\t'		// j
+                    << "MPN: " << pp.get_mean_particles_number() << '\t'		// N_m
+                    << "MSL: " << pp.get_mean_sintering_level() << '\t'		//
+                    << "AMSD: " << pp.get_aggregates_mean_spherical_diameter() << '\t'
+                    << "AN: " << pp.get_aggregates_number() << '\t'
+                    << "AD: " << pp.get_aggregates_density() << '\t'
+                    << "V: " << pp.get_volume() << '\t'
+                    << "MFD: " << pp.get_mean_fractal_dimension() << '\t'
+                    << "CI: " << clock.interval()/PRINT_EVERY << std::endl;
 
           clock.start();
       }
       }
 
 
+    // Moments loop
 /*    while ( *t.onData() <= 0.02) {
       if ( gm.get_T() < 600.) {
         *dTdt.onData() = 0.;

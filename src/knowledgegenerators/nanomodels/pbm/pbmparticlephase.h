@@ -35,17 +35,6 @@
 template<typename A>
 class PBMParticlePhase : public ParticlePhase<A> {
 
-    GasModels* gp;
-    NucleationTheory* nt;
-    SingleComponentComposition* sp;
-
-    void initialize() {
-      gp = this->template findNearest<GasModels>();
-      nt = this->template findNearest<NucleationTheory>();
-      sp = this->template findNearest<SingleComponentComposition>();
-
-    }
-
 public:
 
     /// Maximum timestep size [s]

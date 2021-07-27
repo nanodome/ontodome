@@ -27,7 +27,7 @@ class PhysicalObject {
 public:
 
     /// Object mass [kg]
-    virtual double get_mass() const = 0;
+    virtual double get_mass() = 0;
 };
 
 #endif // PHYSICALOBJECT_H

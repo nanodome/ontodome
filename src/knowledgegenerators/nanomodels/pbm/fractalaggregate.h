@@ -41,15 +41,15 @@ public:
     /// \param p0 pointer to the newly created particle.
     FractalAggregate(std::shared_ptr<P> p0) : Aggregate<P>(p0) {}
 
-	/// Constructor from particles and bonds lists
-	///	\param
-	///	\param
-	FractalAggregate(std::list<std::shared_ptr<P>> _particles,
-		std::list<std::shared_ptr<ParticleBond<P>>> _bonds) :
-		Aggregate<P>(_particles, _bonds) {}
+    /// Constructor from particles and bonds lists
+    ///	\param
+    ///	\param
+    FractalAggregate(std::list<std::shared_ptr<P>> _particles,
+            std::list<std::shared_ptr<ParticleBond<P>>> _bonds) :
+            Aggregate<P>(_particles, _bonds) {}
 
-	/// Copy Constructor
-	FractalAggregate(const FractalAggregate& _aggregate):Aggregate<P>(_aggregate) {}
+    /// Copy Constructor
+    FractalAggregate(const FractalAggregate& _aggregate):Aggregate<P>(_aggregate) {}
 
     /// Aggregate fractal dimension
     virtual double get_fractal_dimension() const = 0;

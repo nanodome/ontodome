@@ -38,71 +38,70 @@ class Particle : public MesoObject, public ObjectCounter<Particle> {
     SingleComponentComposition* s; ///< species composing the particle
     NucleationTheory* nt;
 
-    void initialize () {
-      s = findNearest<SingleComponentComposition>();
-      nt = findNearest<NucleationTheory>();
-    }
-
 public:
 
     /// Constructor.
     /// \param _n number of molecules in the particle [#]
-    /// \param _s species type
-    Particle(double _n, SingleComponentComposition* _s) : n(_n), s(_s) { }
+    /// \param _nt pointer to nucleation theory
+    /// \param _s pointer to species type
+    Particle(double _n, SingleComponentComposition* _s, NucleationTheory* _nt) : n(_n), s(_s), nt(_nt) { }
 
 
     /// Copy constructor
-    Particle(const Particle& p1);
+    Particle( Particle& p1);
 
     /// Get particle molecules number [#].
-    double get_n() const { return n; }
+    double get_n()  { return n; }
 
     /// Get particle species.
-    SingleComponentComposition* get_species() const { return s; }
+    SingleComponentComposition* get_species()  { return s; }
 
     /// Add molecules.
     /// \param dn amount of molecules to add [#]
     void add_molecules(double dn) { n += dn; }
 
     /// Get particle mass from the molecules composition [kg]
-    double get_mass() const;
+    double get_mass() ;
 
     /// Get particle volume using the molecules volume [m3]
-    double get_volume() const;
+    double get_volume() ;
 
     /// Get particle diameter [m]
-    double get_diameter() const;
+    double get_diameter() ;
 
     /// Get particle surface (spherical assumption) [m2]
-    double get_surface() const;
+    double get_surface() ;
 };
 
-Particle::Particle(const Particle& p1) : ObjectCounter<Particle>(p1), s(p1.s) {
+Particle::Particle(Particle& p1) : ObjectCounter<Particle>(p1), s(p1.s), nt(p1.nt) {
 
     n = p1.n;
 }
 
 
-double Particle::get_mass() const {
+double Particle::get_mass() {
 
     return get_n()* *s->findNearest<Mass>()->onData();
 }
 
 
-double Particle::get_volume() const {
+double Particle::get_volume()  {
 
-//    return get_n()*get_species().m_volume();
+//    if (nt == nullptr) {
+//      nt = s->findNearest<NucleationTheory>();
+//    }
+
     return get_n()*nt->get_m_volume();
 }
 
 
-double Particle::get_diameter() const {
+double Particle::get_diameter() {
 
     return 1.240700981798800 * pow(get_volume(), 1.0/3.0);
 }
 
 
-double Particle::get_surface() const {
+double Particle::get_surface() {
 
     return 4.835975862049408 * pow(get_volume(), 2.0/3.0);
 }

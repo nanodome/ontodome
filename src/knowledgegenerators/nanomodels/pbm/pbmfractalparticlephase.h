@@ -32,22 +32,42 @@ template<typename A>
 class PBMFractalParticlePhase : public PBMParticlePhase<A> {
 
     double D_f; ///< Fractal dimension of the aggregates
+    NucleationTheory* nt; ///< Pointer to currently used nucleation theory
+    bool init = false; ///< Boolean value which stores whether the model is initialized or not.
 
 public:
 
     PBMFractalParticlePhase(double _D_f, double _volume = 1e-18)
         : PBMParticlePhase<A>(_volume), D_f(_D_f) {}
 
+    std::vector<double> get_PSD() {
+      return this->get_particles_sizes();
+    }
+
+    std::vector<double> get_ASD() {
+      return this->get_aggregates_sizes();
+    }
+
 private:
 
     double nucleation(double j, SingleComponentComposition* s);
+
+    void initialize () {
+      nt = this-> template findNearest<NucleationTheory>();
+
+      // Mark the object as initialized
+      init = true;
+    };
 };
 
 template<typename A>
 double PBMFractalParticlePhase<A>::nucleation(double j, SingleComponentComposition* s) {
 
+        // Initialize the model if not done before
+        if (init == false) { initialize(); }
+
         // create a new aggregate
-        std::shared_ptr<Particle> p0(new Particle(j,s));
+        std::shared_ptr<Particle> p0(new Particle(j,s,nt));
         std::shared_ptr<A> a0(new A(D_f,p0));
 
         this->aggregates.push_back(a0);

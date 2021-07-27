@@ -25,7 +25,6 @@
 #include "mesoobject.h"
 #include "objectcounter.h"
 #include "particlebond.h"
-#include "aggregate.h"
 #include "ndm_random.h"
 
 #include <list>
@@ -74,10 +73,10 @@ public:
     Aggregate(const Aggregate& a1);
 
     /// Get aggregate mass as sum of the particles masses [kg]
-    double get_mass() const final;
+    double get_mass() final;
 
     /// Get aggregate volume as sum of the particles volumes [m3]
-    double get_volume() const final;
+    double get_volume() final;
 
     /// Number of particles in the aggregate [#]
     double get_particles_number() const { return particles.size(); }
@@ -85,8 +84,8 @@ public:
     /// Get the smallest particle diameter in the aggregate [m]
     double get_particles_smallest_diameter() const;
 
-	/// Get the biggest particle diameter in the aggregate [m]
-	double get_particles_biggest_diameter() const;
+    /// Get the biggest particle diameter in the aggregate [m]
+    double get_particles_biggest_diameter() const;
 
     /// Get the number of bonds in this aggregate
     int get_bonds_number() const { return bonds.size(); }
@@ -95,13 +94,13 @@ public:
     double get_particles_mean_diameter() const;
 
     /// Aggregate area as sum of the particles surface area [m2]
-    double get_surface_area() const;
+    double get_surface_area() ;
 
     /// Get the equivalent spherical surface of the aggregate [m2]
-    double get_spherical_surface() const;
+    double get_spherical_surface();
 
     /// Get the diameter of the equivalent spherical surface [m]
-    double get_spherical_diameter() const;
+    double get_spherical_diameter() ;
 
     /// Mean sintering level of the aggregate
     double get_mean_sintering_level() const;
@@ -180,7 +179,7 @@ Aggregate<P>::Aggregate(const Aggregate<P>& a1) : ObjectCounter<Aggregate<P>>(a1
 
 
 template<typename P>
-double Aggregate<P>::get_mass() const {
+double Aggregate<P>::get_mass() {
 
 	double m = 0;
 
@@ -192,7 +191,7 @@ double Aggregate<P>::get_mass() const {
 
 
 template<typename P>
-double Aggregate<P>::get_volume() const {
+double Aggregate<P>::get_volume() {
 
 	double V = 0;
 
@@ -245,7 +244,7 @@ double Aggregate<P>::get_particles_mean_diameter() const {
 
 
 template<typename P>
-double Aggregate<P>::get_surface_area() const {
+double Aggregate<P>::get_surface_area() {
 
 	double A = 0;
 
@@ -257,7 +256,7 @@ double Aggregate<P>::get_surface_area() const {
 
 
 template<typename P>
-double Aggregate<P>::get_spherical_surface() const {
+double Aggregate<P>::get_spherical_surface() {
 
 	double V = get_volume();
 
@@ -266,7 +265,7 @@ double Aggregate<P>::get_spherical_surface() const {
 
 
 template<typename P>
-double Aggregate<P>::get_spherical_diameter() const {
+double Aggregate<P>::get_spherical_diameter() {
 
 	double S = get_spherical_surface();
 

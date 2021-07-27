@@ -22,7 +22,6 @@
 #ifndef MESOOBJECT_H
 #define MESOOBJECT_H
 
-//#include "../../../base/thing.h"
 #include "../../../ontodome.h"
 #include "physicalobject.h"
 
@@ -33,7 +32,7 @@ class MesoObject : public virtual PhysicalObject, public MolecularEntity {
 public:
 
     /// Object volume [m3]
-    virtual double get_volume() const = 0;
+    virtual double get_volume() = 0;
 
     /// Virtual destructor
     virtual ~MesoObject() {}
