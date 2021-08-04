@@ -34,6 +34,10 @@
 #include "knowledgegenerators/gasmodels/gasmodel.h"
 #include "knowledgegenerators/nanomodels/nucleation/classicalnucleationtheory.h"
 #include "knowledgegenerators/nanomodels/moments/momentmodelpratsinis.h"
-#include "knowledgegenerators/nanomodels/pbm/pbmfractalparticlephase.h"
+#include "knowledgegenerators/nanomodels/particles/PBM/pbmfractalparticlephase.h"
+#include "knowledgegenerators/nanomodels/particles/PBM/pbmdlcaparticlephase.h"
+#include "knowledgegenerators/nanomodels/particles/PBM/pbmbccaparticlephase.h"
+#include "knowledgegenerators/nanomodels/particles/CGMD/constrainedlangevinparticlephase.h"
+//#include "knowledgegenerators/nanomodels/particles/CGMD/rigidbodylangevinparticlephase.h"
 
 #endif // ONTODOME

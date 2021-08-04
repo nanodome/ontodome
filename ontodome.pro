@@ -5,14 +5,6 @@ CONFIG -= qt
 
 SOURCES += \
     src/main.cpp \
-    #PBM sources
-#    src/knowledgegenerators/nanomodels/pbm/aggregate.cpp \
-#    src/knowledgegenerators/nanomodels/pbm/particle.cpp \
-#    src/knowledgegenerators/nanomodels/pbm/particlebond.cpp \
-#    src/knowledgegenerators/nanomodels/pbm/particlephase.cpp \
-#    src/knowledgegenerators/nanomodels/pbm/pbmaggregate.cpp \
-#    src/knowledgegenerators/nanomodels/pbm/pbmfractalparticlephase.cpp \
-#    src/knowledgegenerators/nanomodels/pbm/pbmparticlephase.cpp \
     #Tools and basic sources
     src/base/relation.cpp \
     src/base/thing.cpp \
@@ -20,21 +12,48 @@ SOURCES += \
     src/tools/utilities.cpp
 
 HEADERS += \
-    #PBM headers
-    src/knowledgegenerators/nanomodels/pbm/aggregate.h \
-    src/knowledgegenerators/nanomodels/pbm/bond.h \
-    src/knowledgegenerators/nanomodels/pbm/collisionalobject.h \
-    src/knowledgegenerators/nanomodels/pbm/edge.h \
-    src/knowledgegenerators/nanomodels/pbm/fractalaggregate.h \
-    src/knowledgegenerators/nanomodels/pbm/mesoobject.h \
-    src/knowledgegenerators/nanomodels/pbm/objectcounter.h \
-    src/knowledgegenerators/nanomodels/pbm/particle.h \
-    src/knowledgegenerators/nanomodels/pbm/particlebond.h \
-    src/knowledgegenerators/nanomodels/pbm/particlephase.h \
-    src/knowledgegenerators/nanomodels/pbm/pbmaggregate.h \
-    src/knowledgegenerators/nanomodels/pbm/pbmfractalparticlephase.h \
-    src/knowledgegenerators/nanomodels/pbm/pbmparticlephase.h \
-    src/knowledgegenerators/nanomodels/pbm/physicalobject.h \
+    #Particle Phase general headers
+    src/knowledgegenerators/nanomodels/particles/aggregate/aggregate.h \
+    src/knowledgegenerators/nanomodels/particles/bond/bond.h \
+    src/knowledgegenerators/nanomodels/particles/base/collisionalobject.h \
+    src/knowledgegenerators/nanomodels/particles/bond/edge.h \
+    src/knowledgegenerators/nanomodels/particles/aggregate/fractalaggregate.h \
+    src/knowledgegenerators/nanomodels/particles/aggregate/rattleaggregate.h \
+    src/knowledgegenerators/nanomodels/particles/aggregate/spatialaggregate.h \
+    src/knowledgegenerators/nanomodels/particles/base/mesoobject.h \
+    src/knowledgegenerators/nanomodels/particles/base/objectcounter.h \
+    src/knowledgegenerators/nanomodels/particles/particle/particle.h \
+    src/knowledgegenerators/nanomodels/particles/bond/particlebond.h \
+    src/knowledgegenerators/nanomodels/particles/particlephase/particlephase.h \
+    src/knowledgegenerators/nanomodels/particles/aggregate/pbmaggregate.h \
+    src/knowledgegenerators/nanomodels/particles/particlephase/pbmparticlephase.h \
+    src/knowledgegenerators/nanomodels/particles/base/physicalobject.h \
+    src/knowledgegenerators/nanomodels/particles/particlephase/cgmdparticlephase.h \
+    src/knowledgegenerators/nanomodels/particles/particlephase/dynamicparticlephase.h \
+    src/knowledgegenerators/nanomodels/particles/particlephase/randomwalkparticlephase.h \
+    src/knowledgegenerators/nanomodels/particles/spatial/cell.h \
+    src/knowledgegenerators/nanomodels/particles/spatial/grid.h \
+    src/knowledgegenerators/nanomodels/particles/tetra_constrainer.h \
+    src/knowledgegenerators/nanomodels/particles/spatial/tetra_vertex.h \
+    src/knowledgegenerators/nanomodels/particles/spatial/tetra_constrainer.h \
+    src/knowledgegenerators/nanomodels/particles/spatial/tetra_constraint.h \
+    src/knowledgegenerators/nanomodels/particles/spatial/tetra_link.h \
+    src/knowledgegenerators/nanomodels/particles/spatial/tetra_bond.h \
+    src/knowledgegenerators/nanomodels/particles/spatial/tetra_constants.h \
+    src/knowledgegenerators/nanomodels/particles/spatial/tetra_tetrahedron.h \
+    src/knowledgegenerators/nanomodels/particles/spatial/tetra_face.h \
+    src/knowledgegenerators/nanomodels/particles/dynamic/dynamicparticle.h \
+    src/knowledgegenerators/nanomodels/particles/dynamic/dynamicpoint.h \
+    src/knowledgegenerators/nanomodels/particles/spatial/point.h \
+    src/knowledgegenerators/nanomodels/particles/utilities/ndm_random.h \
+    src/knowledgegenerators/nanomodels/particles/utilities/i_o.h \
+    #PBM Headers
+    src/knowledgegenerators/nanomodels/particles/PBM/pbmfractalparticlephase.h \
+    src/knowledgegenerators/nanomodels/particles/PBM/pbmbccaparticlephase.h \
+    src/knowledgegenerators/nanomodels/particles/PBM/pbmdlcaparticlephase.h \
+    #CGMD Headers
+    src/knowledgegenerators/nanomodels/particles/CGMD/rigidbodylangevinparticlephase.h \
+    src/knowledgegenerators/nanomodels/particles/CGMD/constrainedlangevinparticlephase.h \
     #Gas models headers
     src/knowledgegenerators/gasmodels/gasmodels.h \
     src/knowledgegenerators/gasmodels/gasmodel.h \

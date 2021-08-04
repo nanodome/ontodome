@@ -1,0 +1,75 @@
+/*
+    NanoDome - H2020 European Project NanoDome, GA n.646121
+    (www.nanodome.eu, https://github.com/nanodome/nanodome)
+    e-mail: Emanuele Ghedini, emanuele.ghedini@unibo.it
+
+    Copyright (C) 2018  Alma Mater Studiorum - Università di Bologna
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as
+    published by the Free Software Foundation, either version 3 of the
+    License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+#ifndef PBMFRACTALPARTICLEPHASE_H
+#define PBMFRACTALPARTICLEPHASE_H
+
+#include "../particlephase/pbmparticlephase.h"
+
+
+/// Concept:
+/// P --> PBMAggregate
+
+template<typename A>
+class PBMFractalParticlePhase : public PBMParticlePhase<A> {
+
+    double D_f; ///< Fractal dimension of the aggregates
+    NucleationTheory* nt; ///< Pointer to currently used nucleation theory
+    bool init = false; ///< Boolean value which stores whether the model is initialized or not.
+
+public:
+
+    PBMFractalParticlePhase(double _D_f, double _volume = 1e-18)
+        : PBMParticlePhase<A>(_volume), D_f(_D_f) {
+          // set max and min number of aggregates
+          // THIS IS THE DEFAULT. THE USER CAN CHANGE THESE VALUES AFTER THE CLASS INSTANTION
+          this->set_max_aggregates(2000);
+          this->set_min_aggregates(1990);
+        }
+
+private:
+
+    double nucleation(double j, SingleComponentComposition* s);
+
+    void initialize () {
+      nt = this-> template findNearest<NucleationTheory>();
+
+      // Mark the object as initialized
+      init = true;
+    };
+};
+
+template<typename A>
+double PBMFractalParticlePhase<A>::nucleation(double j, SingleComponentComposition* s) {
+
+        // Initialize the model if not done before
+        if (init == false) { initialize(); }
+
+        // create a new aggregate
+        std::shared_ptr<Particle> p0(new Particle(j,s,nt));
+        std::shared_ptr<A> a0(new A(D_f,p0));
+
+        this->aggregates.push_back(a0);
+
+        return j/this->volume;
+}
+
+#endif // PBMFRACTALPARTICLEPHASE_H

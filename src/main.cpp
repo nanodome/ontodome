@@ -12,12 +12,12 @@ int main()
     Time t(new Real(0), new Unit("s"));
     gas.createRelationTo<hasProperty,Time>(&t);
 
-    MolarFraction msi(new Real(0.05), new Unit("#"));
+    MolarFraction msi(new Real(0.1), new Unit("#"));
     SingleComponentComposition si(&msi,SiliconSymbol::get_symbol());
-    MolarFraction mhe(new Real(0.95), new Unit("#"));
+    MolarFraction mhe(new Real(0.9), new Unit("#"));
     SingleComponentComposition he(&mhe,HeliumSymbol::get_symbol());
 
-    Temperature T(new Real(4000.), new Unit("K"));
+    Temperature T(new Real(8000.), new Unit("K"));
     Pressure p(new Real(101325.), new Unit("Pa"));
     PressureTimeDerivative dpdt(new Real(0.), new Unit("Pa/s"));
     TemperatureTimeDerivative dTdt(new Real(-1e+7), new Unit("K/s"));
@@ -59,6 +59,10 @@ int main()
     MeltingPoint melp(new Real(1687.), new Unit("K"));
     melp.createRelationTo<hasScalarProperty,SingleComponentComposition>(&si);
 
+    // Helium properties
+    Mass hem(new Real(4.005*AMU), new Unit("kg"));
+    hem.createRelationTo<hasScalarProperty,SingleComponentComposition>(&he);
+
     // Models settings
     Time dt(new Real(1e-7), new Unit("s")); // simulation timestep. This definition is not ontologically correct
 
@@ -71,16 +75,87 @@ int main()
     MomentModelPratsinis mom;
     mom.createRelationTo<hasModel,SingleComponentComposition>(&si);
 
-    PBMFractalParticlePhase<PBMAggregate<Particle>> pp(1.61, 5.0e-16);
-    pp.createRelationTo<hasModel,SingleComponentComposition>(&si);
-    // set max and min number of aggregates
-    pp.set_max_aggregates(2000);
-    pp.set_min_aggregates(1990);
+//    PBMFractalParticlePhase<PBMAggregate<Particle>> pp(1.61, 5.0e-16);
+//    pp.createRelationTo<hasModel,SingleComponentComposition>(&si);
 
-    // Example of usage for the moments method
+    // Common settings
     int PRINT_EVERY = 1000;
     int iter = 0;
 
+    ConstrainedLangevinParticlePhase<RATTLEAggregate<DynamicParticle>> cgmd(1e-18);
+    cgmd.createRelationTo<hasModel,SingleComponentComposition>(&si);
+
+    // CGMD loop
+    int PRINT_STEP = 40;
+    double SAVE_SNAPSHOT = 1.0e-8;
+    std::string vtk_path = "E/vtk/";
+
+    const int SAVE_EVERY = 100;
+    int iterations = 0; // Iterations
+    double snap_count = 0.0; // Counter for saving VTK file
+
+    // Temporary assignments. To be removed during second CGMD release
+    double* T_melt = si.getRelatedObjects<MeltingPoint>()[0]->onData();
+    double* s_bulk_density_sol = si.getRelatedObjects<BulkDensitySolid>()[0]->onData();
+    double* s_bulk_density_liq = si.getRelatedObjects<BulkDensityLiquid>()[0]->onData();
+
+
+    // Simulation Main Cycle
+    while (*t.onData() <= 0.005) {
+
+        if (gm.get_T() < 300.)
+        { *dTdt.onData() = 0.; }
+
+        //Bulk density calculation
+        // Initialize the model if not done before
+        double bdens = (gm.get_T() < *T_melt) ? *s_bulk_density_sol : *s_bulk_density_liq;
+
+        // check the smallest particle in the system
+        double d_min = cgmd.get_particles_smallest_diameter();
+
+        // calculate dt max for langevin equation stability dt (dt < 2*m/alpha)
+        double dt_max_lang = d_min*bdens/gm.get_gas_flux();
+
+        // calculate dt max to have v*dt < d/2 for the smallest particle
+        double dt_max_coll = sqrt(M_PI*bdens *pow(d_min,5)/(24*3*K_BOL*gm.get_T()));
+
+        if(cgmd.get_aggregates_number()>=1) {
+            *dt.onData() = std::min(dt_max_coll,dt_max_lang);
+            if(*dt.onData()>1e-10) *dt.onData() = 1.0e-10;
+          }
+
+        // particle phase timestep
+        double g_cons = cgmd.timestep(*dt.onData(), &gm, &cnt, *T.onData(), &si);
+
+        // gas phase time step
+        gm.timestep(*dt.onData(), { g_cons, 0.0 });
+
+        // Update elapsed time and iterations
+        *t.onData() += *dt.onData();
+        snap_count += *dt.onData();
+        iterations++;
+
+        // Print snapshot
+        if (counter_trigger(iterations,PRINT_EVERY)) {
+            std::cout << "t[s]: " << *t.onData() << '\t'
+                      << dt_max_coll << '\t'
+                      << dt_max_lang << '\t'
+                      << "T[K]: " << gm.get_T() << '\t'
+                      << "V[m^3]"<< cgmd.get_volume() << '\t'
+                      << "|N|: " << cgmd.get_aggregates_number() << '\t'
+//                      << "|C|: " << cgmd.get_aggregates_cardinality()
+                      << std::endl;
+          }
+
+//        // Save VTK
+//        if (snap_count >= SAVE_SNAPSHOT && pp.get_aggregates_number() > 0) {
+//            cgmd.save_vtk(iterations, vtk_path);
+//            snap_count = 0.0;
+//          }
+
+      }
+
+/*
     // PBM loop
     // loop over timesteps
     while(*t.onData() < 0.005) {
@@ -136,7 +211,7 @@ int main()
       }
       }
 
-
+*/
     // Moments loop
 /*    while ( *t.onData() <= 0.02) {
       if ( gm.get_T() < 600.) {
