@@ -22,8 +22,8 @@
 #ifndef RIGIDBODYLANGEVINPARTICLEPHASE_H
 #define RIGIDBODYLANGEVINPARTICLEPHASE_H
 
-#include "dynamicparticlephase.h"
-#include "aggregate/rigidbodyaggregate.h"
+#include "../particlephase/dynamicparticlephase.h"
+#include "../aggregate/rigidbodyaggregate.h"
 
 template<typename A>
 class RigidBodyLangevinParticlePhase : public DynamicParticlePhase<A> {

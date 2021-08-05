@@ -63,11 +63,17 @@ public:
 
     /// Sets the maximum number of aggregates allowed in the simulation
     ///	\param int _agg_max: maximum number of aggregates in the simulation
-    void set_max_agg_number(int _agg_max) { max_aggregates_number = _agg_max; }
+    void set_max_agg_number(int _agg_max) { this->max_aggregates_number = _agg_max; }
 
     /// Sets the minimum number of aggregates allowed in the simulation
     ///	\param int _agg_min: maximum number of aggregates in the simulation
-    void set_min_agg_number(int _agg_min) { min_aggregates_number = _agg_min; }
+    void set_min_agg_number(int _agg_min) { this->min_aggregates_number = _agg_min; }
+
+    /// Returns the maximum number of aggregates allowed in the simulation
+    int get_max_agg_number() { return max_aggregates_number; }
+
+    /// Returns the minimum number of aggregates allowed in the simulation
+    int get_min_agg_number() { return min_aggregates_number; }
 
 };
 

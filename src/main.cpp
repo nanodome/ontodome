@@ -17,7 +17,7 @@ int main()
     MolarFraction mhe(new Real(0.9), new Unit("#"));
     SingleComponentComposition he(&mhe,HeliumSymbol::get_symbol());
 
-    Temperature T(new Real(8000.), new Unit("K"));
+    Temperature T(new Real(3000.), new Unit("K"));
     Pressure p(new Real(101325.), new Unit("Pa"));
     PressureTimeDerivative dpdt(new Real(0.), new Unit("Pa/s"));
     TemperatureTimeDerivative dTdt(new Real(-1e+7), new Unit("K/s"));
@@ -79,19 +79,15 @@ int main()
 //    pp.createRelationTo<hasModel,SingleComponentComposition>(&si);
 
     // Common settings
-    int PRINT_EVERY = 1000;
+    int PRINT_EVERY = 1;
     int iter = 0;
 
-    ConstrainedLangevinParticlePhase<RATTLEAggregate<DynamicParticle>> cgmd(1e-18);
+    ConstrainedLangevinParticlePhase<RATTLEAggregate<DynamicParticle>> cgmd(5e-19);
     cgmd.createRelationTo<hasModel,SingleComponentComposition>(&si);
 
     // CGMD loop
-    int PRINT_STEP = 40;
     double SAVE_SNAPSHOT = 1.0e-8;
     std::string vtk_path = "E/vtk/";
-
-    const int SAVE_EVERY = 100;
-    int iterations = 0; // Iterations
     double snap_count = 0.0; // Counter for saving VTK file
 
     // Temporary assignments. To be removed during second CGMD release
@@ -117,7 +113,7 @@ int main()
         double dt_max_lang = d_min*bdens/gm.get_gas_flux();
 
         // calculate dt max to have v*dt < d/2 for the smallest particle
-        double dt_max_coll = sqrt(M_PI*bdens *pow(d_min,5)/(24*3*K_BOL*gm.get_T()));
+        double dt_max_coll = sqrt(M_PI*bdens*pow(d_min,5)/(24*3*K_BOL*gm.get_T()));
 
         if(cgmd.get_aggregates_number()>=1) {
             *dt.onData() = std::min(dt_max_coll,dt_max_lang);
@@ -128,21 +124,23 @@ int main()
         double g_cons = cgmd.timestep(*dt.onData(), &gm, &cnt, *T.onData(), &si);
 
         // gas phase time step
-        gm.timestep(*dt.onData(), { g_cons, 0.0 });
+        gm.timestep(*dt.onData(), { -g_cons, 0.0 });
 
         // Update elapsed time and iterations
         *t.onData() += *dt.onData();
         snap_count += *dt.onData();
-        iterations++;
+        iter++;
 
         // Print snapshot
-        if (counter_trigger(iterations,PRINT_EVERY)) {
+        if (counter_trigger(iter,PRINT_EVERY)) {
             std::cout << "t[s]: " << *t.onData() << '\t'
                       << dt_max_coll << '\t'
                       << dt_max_lang << '\t'
                       << "T[K]: " << gm.get_T() << '\t'
                       << "V[m^3]"<< cgmd.get_volume() << '\t'
                       << "|N|: " << cgmd.get_aggregates_number() << '\t'
+                      << "max|N|: " << cgmd.get_max_agg_number() << '\t'
+                      << "min|N|: " << cgmd.get_min_agg_number() << '\t'
 //                      << "|C|: " << cgmd.get_aggregates_cardinality()
                       << std::endl;
           }

@@ -115,14 +115,14 @@ public:
 
     /// Time step
     ///	\param double dt: timestep [sec]
-    ///	\param const GasPhase& gp: GasPhase object [by reference]
+    ///	\param const GasModels& gp: GasPhase object [by reference]
     ///	\param const NucleationTheory& nt: Nucleation Theory object [by reference]
     ///	\param double& T: Temperature[K] [by reference]
     double timestep(double dt, GasModels* gp, NucleationTheory* nt, double& T, SingleComponentComposition* sp);
 
     /// Linked-Cell time step
     ///	\param double dt: timestep [sec]
-    ///	\param const GasPhase& gp: GasPhase object [by reference]
+    ///	\param const GasModels& gp: GasPhase object [by reference]
     ///	\param const NucleationTheory& nt: Nucleation Theory object [by reference]
     ///	\param double& T: Temperature[K] [by reference]
     double timestep_lc(double dt, GasModels* gp, NucleationTheory* nt, SingleComponentComposition* sp, double& T);
@@ -276,6 +276,9 @@ double ConstrainedLangevinParticlePhase<A>::timestep(double dt, GasModels *gp, N
 
 	// Update volume from gas phase data
 	this->volume_expansion(dt,gp);
+
+	// adjust the aggregates number
+	this->aggregates_number_balance();
 
 	return g_si;
 }
@@ -966,6 +969,7 @@ void ConstrainedLangevinParticlePhase<A>::aggregates_number_balance() {
 
 	if (N>this->max_aggregates_number) {
 
+//	    while (N > this->max_aggregates_number) {
 		auto it = this->aggregates.begin();
 		double rho = ndm::uniform_double_distr(ndm::rand_gen);
 
@@ -992,8 +996,11 @@ void ConstrainedLangevinParticlePhase<A>::aggregates_number_balance() {
 				agg_idx++;
 		}
 
-		// Update volume
+		// Update volume and aggregates number
 		this->volume *= (N - 1.0) / N;
+//		N--
+
+//	    }
 	}
 
 	if (N < this->min_aggregates_number) {
@@ -1099,9 +1106,6 @@ void ConstrainedLangevinParticlePhase<A>::aggregates_number_balance() {
 		}
 
 	}
-
-
-
 }
 
 

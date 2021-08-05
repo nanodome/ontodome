@@ -30,7 +30,7 @@
 
 #include "../utilities/ndm_random.h"
 
-#include<cfloat>
+#include <cfloat>
 #include <list>
 #include <memory>
 
