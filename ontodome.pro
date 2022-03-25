@@ -74,6 +74,33 @@ HEADERS += \
     #Tools and basic headers
     src/ontodome.h \
     src/base/ontodome_base.h \
+    src/pybind11/attr.h \
+    src/pybind11/buffer_info.h \
+    src/pybind11/cast.h \
+    src/pybind11/chrono.h \
+    src/pybind11/common.h \
+    src/pybind11/complex.h \
+    src/pybind11/detail/class.h \
+    src/pybind11/detail/common.h \
+    src/pybind11/detail/descr.h \
+    src/pybind11/detail/init.h \
+    src/pybind11/detail/internals.h \
+    src/pybind11/detail/type_caster_base.h \
+    src/pybind11/detail/typeid.h \
+    src/pybind11/eigen.h \
+    src/pybind11/embed.h \
+    src/pybind11/eval.h \
+    src/pybind11/functional.h \
+    src/pybind11/gil.h \
+    src/pybind11/iostream.h \
+    src/pybind11/numpy.h \
+    src/pybind11/operators.h \
+    src/pybind11/options.h \
+    src/pybind11/pybind11.h \
+    src/pybind11/pytypes.h \
+    src/pybind11/stl.h \
+    src/pybind11/stl/filesystem.h \
+    src/pybind11/stl_bind.h \
     src/tools/clock.h \
     src/tools/utilities.h \
     src/base/datatypes.h \

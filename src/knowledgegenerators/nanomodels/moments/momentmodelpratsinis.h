@@ -165,17 +165,17 @@ public:
       double sg = exp(sqrt(ln2sg));
 
       // coagulation source for each moment
-      double M0_coag =   t_csi2*zeta0(sg)*(  M_k(2./3.,ln2sg,vg) * M_k(-1./2.,ln2sg,vg) +
-                                            2*M_k(1./3.,ln2sg,vg) * M_k(-1./6.,ln2sg,vg) +
-                                              M_k(1./6.,ln2sg,vg) * M0);
+//      double M0_coag =   t_csi2*zeta0(sg)*(  M_k(2./3.,ln2sg,vg) * M_k(-1./2.,ln2sg,vg) +
+//                                            2*M_k(1./3.,ln2sg,vg) * M_k(-1./6.,ln2sg,vg) +
+//                                              M_k(1./6.,ln2sg,vg) * M0);
 
-      double M2_coag = 2*t_csi2*zeta2(sg)*(  M_k(5./3.,ln2sg,vg) * M_k(1./2.,ln2sg,vg) +
-                                            2*M_k(4./3.,ln2sg,vg) * M_k(5./6.,ln2sg,vg) +
-                                              M_k(7./6.,ln2sg,vg) * M1);
+//      double M2_coag = 2*t_csi2*zeta2(sg)*(  M_k(5./3.,ln2sg,vg) * M_k(1./2.,ln2sg,vg) +
+//                                            2*M_k(4./3.,ln2sg,vg) * M_k(5./6.,ln2sg,vg) +
+//                                              M_k(7./6.,ln2sg,vg) * M1);
 
       // TEST
-      M0_coag = 0.0;
-      M2_coag = 0.0;
+      double M0_coag = 0.0;
+      double M2_coag = 0.0;
 
       // dissolution source: if S<1 then the flux of particles becoming smaller than a two monomers cluster
       // due to evaporation is removed from the particle set

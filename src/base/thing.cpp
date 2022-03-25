@@ -167,7 +167,7 @@ std::vector<T*> Thing::findAll() {
   }
 
   if (result.size() == 0) {
-      std::cout << "Not found." << std::endl; // for test purposes
+      std::cout << "Nothing found." << std::endl; // for test purposes
       abort(); }
   else { return result; }
 }
