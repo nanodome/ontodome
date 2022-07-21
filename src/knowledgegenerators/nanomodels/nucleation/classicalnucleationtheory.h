@@ -47,14 +47,7 @@ protected:
   bool init = false; ///< Boolean value which stores whether the model is initialized or not.
 
 public:
-    ClassicalNucleationTheory() {
-//      // List of compatible entities
-//      createRelationTo<isModelFor,Thing>(new HomonuclearMolecule);
-//      createRelationTo<isModelFor,Thing>(new HeteronuclearMolecule);
-
-//      // List of required models
-//      createRelationTo<requiresModelFor,Thing>(new GasMixture);
-    };
+    ClassicalNucleationTheory() {};
 
 protected:
     /// Model initializer
@@ -67,8 +60,8 @@ protected:
       ssat = species->findNearest<SaturationPressure>();
       stenm = sten->findNearest<SurfaceTensionMaterialRelation>();
       ssatm = ssat->findNearest<SaturationPressureMaterialRelation>();
-      s_mass = *species->findNearest<Mass>()->onData();
-      s_bulk_liq = *species->findNearest<BulkDensityLiquid>()->onData();
+      s_mass = *species->findNearest<Mass>()->get_data();
+      s_bulk_liq = *species->findNearest<BulkDensityLiquid>()->get_data();
 
       // Mark the object as initialized
       init = true;
@@ -82,7 +75,7 @@ public:
       if (init == false) { initialize(); }
 
       // Get Temperature value
-      double T1 = *T->onData();
+      double T1 = *T->get_data();
 
       double rate = 0.;
       //unsigned int fp_control_state = _controlfp(_EM_INEXACT, _MCW_EM);
@@ -95,7 +88,7 @@ public:
 
           // Update Surface Tension value on species
           stenm->run();
-          double s_s_ten = *sten->onData();
+          double s_s_ten = *sten->get_data();
 
           // Normalized surface tension
           double theta = s_s_ten*get_m_surface()/(K_BOL*T1);
@@ -126,7 +119,7 @@ public:
       if (init == false) { initialize(); }
 
       // Get Temperature value
-      double T1 = *T->onData();
+      double T1 = *T->get_data();
 
       // Default cluser number
       double c_size = 1.0;
@@ -140,7 +133,7 @@ public:
       // Check if species is saturated; if not, the stable size has no sense and is set to one
       // meaning that the smallest cluster is a single monomer (no-cluster)
       if(S>1) {
-          c_size = 2.0 * get_m_surface() * *sten->onData() / (3*K_BOL*T1*log(S));
+          c_size = 2.0 * get_m_surface() * *sten->get_data() / (3*K_BOL*T1*log(S));
           c_size = pow(c_size,3);
       }
 
@@ -163,7 +156,7 @@ public:
       if (init == false) { initialize(); }
 
       // Get Temperature value
-      double T1 = *T->onData();
+      double T1 = *T->get_data();
 
       // Get the supersaturation ration from GasPhase
       double S = gasmodel->get_S(species);
@@ -171,7 +164,7 @@ public:
       // Update Saturation Pressure's value on species
       ssatm->run();
 
-      return *ssat->onData() * (S-1.0) / sqrt(2*M_PI*s_mass*K_BOL*T1);
+      return *ssat->get_data() * (S-1.0) / sqrt(2*M_PI*s_mass*K_BOL*T1);
     }
 
     /// Returns the molecular Volume [m3]

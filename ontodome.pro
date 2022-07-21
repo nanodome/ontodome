@@ -1,9 +1,18 @@
-TEMPLATE = app
-CONFIG += console c++17
-CONFIG -= app_bundle
+TEMPLATE = lib
+#TEMPLATE = app
+CONFIG += console c++14
+CONFIG -= dynamiclib
+#CONFIG -= app_bundle
 CONFIG -= qt
 
+QMAKE_CXXFLAGS += -std=c++14 -O2 -Wall -shared -fopenmp
+QMAKE_LFLAGS += -fopenmp
+LIBS += -lstdc++fs  -static-libstdc++
+
+INCLUDEPATH = "/usr/include/python3.9"
+
 SOURCES += \
+    src/knowledgegenerators/nanomodels/particles/utilities/tinyxml2/tinyxml2.cpp \
     src/main.cpp \
     #Tools and basic sources
     src/base/relation.cpp \
@@ -13,6 +22,7 @@ SOURCES += \
 
 HEADERS += \
     #Particle Phase general headers
+    src/knowledgegenerators/nanomodels/nanonetwork.h \
     src/knowledgegenerators/nanomodels/particles/aggregate/aggregate.h \
     src/knowledgegenerators/nanomodels/particles/bond/bond.h \
     src/knowledgegenerators/nanomodels/particles/base/collisionalobject.h \
@@ -24,13 +34,14 @@ HEADERS += \
     src/knowledgegenerators/nanomodels/particles/base/objectcounter.h \
     src/knowledgegenerators/nanomodels/particles/particle/particle.h \
     src/knowledgegenerators/nanomodels/particles/bond/particlebond.h \
+    src/knowledgegenerators/nanomodels/particles/particlephase/cgmdparticlephase.h \
+    src/knowledgegenerators/nanomodels/particles/particlephase/dynamicparticlephase.h \
     src/knowledgegenerators/nanomodels/particles/particlephase/particlephase.h \
     src/knowledgegenerators/nanomodels/particles/aggregate/pbmaggregate.h \
     src/knowledgegenerators/nanomodels/particles/particlephase/pbmparticlephase.h \
     src/knowledgegenerators/nanomodels/particles/base/physicalobject.h \
     src/knowledgegenerators/nanomodels/particles/particlephase/cgmdparticlephase.h \
     src/knowledgegenerators/nanomodels/particles/particlephase/dynamicparticlephase.h \
-    src/knowledgegenerators/nanomodels/particles/particlephase/randomwalkparticlephase.h \
     src/knowledgegenerators/nanomodels/particles/spatial/cell.h \
     src/knowledgegenerators/nanomodels/particles/spatial/grid.h \
     src/knowledgegenerators/nanomodels/particles/tetra_constrainer.h \
@@ -52,7 +63,6 @@ HEADERS += \
     src/knowledgegenerators/nanomodels/particles/PBM/pbmbccaparticlephase.h \
     src/knowledgegenerators/nanomodels/particles/PBM/pbmdlcaparticlephase.h \
     #CGMD Headers
-    src/knowledgegenerators/nanomodels/particles/CGMD/rigidbodylangevinparticlephase.h \
     src/knowledgegenerators/nanomodels/particles/CGMD/constrainedlangevinparticlephase.h \
     #Gas models headers
     src/knowledgegenerators/gasmodels/gasmodels.h \
@@ -65,6 +75,7 @@ HEADERS += \
     src/knowledgegenerators/nanomodels/nucleation/nucleation.h \
     src/knowledgegenerators/nanomodels/nucleation/cnt.h \
     #Material relations headers
+    src/knowledgegenerators/nanomodels/particles/utilities/tinyxml2/tinyxml2.h \
     src/knowledgegenerators/surfacetensionmaterialrelation.h \
     src/knowledgegenerators/saturationpressurematerialrelation.h \
     src/knowledgegenerators/saturationpressuremodels/saturationpressurematerialrelation.h \
@@ -74,6 +85,7 @@ HEADERS += \
     #Tools and basic headers
     src/ontodome.h \
     src/base/ontodome_base.h \
+    #Python binding library
     src/pybind11/attr.h \
     src/pybind11/buffer_info.h \
     src/pybind11/cast.h \

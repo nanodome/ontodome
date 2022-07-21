@@ -12,7 +12,8 @@
 
 class Thing : public BaseClass {
 
-protected:
+//protected:
+public:
     // dynamic relations
     std::vector<Relation*> relations;
 
@@ -28,11 +29,8 @@ public:
     /// Returns the object's name.
     virtual std::string getClassName() const { return "Thing"; }
 
-//    /// Custom label for distinguish objects of same class but different physical meaning
-//    std::string label;
-
-//    /// Add a label to the object
-//    void addLabel(std::string _label) { label = _label; }
+    /// List all relations.
+    std::vector<Thing *> ListRelations() ;
 
     /// Adds a relation to the object by pushing a relation to the relations array.
     /// \param r pointer to the relation to be added.
@@ -70,10 +68,6 @@ public:
     /// Gets the all the entities with the specified class related to given entity.
     template<class T>
     std::vector<T*> getRelatedObjects();
-
-    /// Gets the all the entities with the specified class and label, related to given entity.
-    template<class T>
-    std::vector<T*> getLabeledRelatedObjects(std::string label);
 };
 
 class EMMO : public Thing {
@@ -106,12 +100,12 @@ public:
     std::string getClassName() const { return "Physical"; }
 };
 
-class Perspective :virtual public Physical {
+class Perspective : public Physical {
 public:
     std::string getClassName() const { return "Perspective"; }
 };
 
-class Reductionistic : public Perspective {
+class Reductionistic : virtual public Perspective {
 public:
     std::string getClassName() const { return "Reductionistic"; }
 };
@@ -126,7 +120,7 @@ public:
     std::string getClassName() const { return "State"; }
 };
 
-class Symbolic : public Perspective {
+class Symbolic : virtual public Perspective {
 public:
     std::string getClassName() const { return "Symbolic"; }
 };
@@ -156,28 +150,24 @@ public:
     std::string getClassName() const { return "SymbolicConstruct"; }
 };
 
-class String : public SymbolicConstruct, public DataType<std::string>
-{
+class String : public SymbolicConstruct, public DataType<std::string> {
 public:
     std::string getClassName() const { return "String"; }
 };
 
-class Arrangement : public State
-{
+class Arrangement : public State {
 public:
     std::string getClassName() const { return "Arrangement"; }
 };
 
-class Array : public Arrangement
-{
+class Array : public Arrangement {
 public:
     std::string getClassName() const { return "Array"; }
 };
 
-class Vector : public Array, public DataType<std::vector<double>>
-{
+class Vector : public Array, public DataType<std::vector<double>> {
 public:
-    Vector(std::vector<double> s) {data = s;}
+    Vector(std::vector<double> s) {value = s;}
     std::string getClassName() const { return "Vector"; }
 };
 
@@ -206,24 +196,21 @@ public:
     std::string getClassName() const { return "Metrological"; }
 };
 
-class IUPAC : public String
-{
+class IUPAC : public String {
 public:
-    IUPAC(std::string _iupac) { data = _iupac; }
+    IUPAC(std::string _iupac) { value = _iupac; }
     std::string getClassName() const { return "IUPAC Name"; }
 };
 
-class LatexExpression : public String
-{
+class LatexExpression : public String {
 public:
-    LatexExpression(std::string _expr) { data = _expr; }
+    LatexExpression(std::string _expr) { value = _expr; }
     std::string getClassName() const { return "LatexExpression"; }
 };
 
-class Unit : public String
-{
+class Unit : public String {
 public:
-    Unit(std::string _unit) {data = _unit;}
+    Unit(std::string _unit) {value = _unit;}
     std::string getClassName() const { return "Unit"; }
 };
 
@@ -237,19 +224,18 @@ public:
     std::string getClassName() const { return "Number"; }
 };
 
-class Real : public Number, public DataType<double>
-{
+class Real : public Number, public DataType<double> {
 public:
-    Real(double s) {data = s;}
+    Real(double s) {value = s;}
     std::string getClassName() const { return "Real"; }
 };
 
-class KnowledgeGenerator : public Perspective {
+class KnowledgeGenerator : virtual public Perspective {
 public:
     std::string getClassName() const { return "KnowledgeGenerator"; }
 };
 
-class Holistic : public Perspective {
+class Holistic : virtual public Perspective {
 public:
     std::string getClassName() const { return "Holistic"; }
 };
@@ -375,28 +361,28 @@ public:
     std::string getClassName() const { return "HomonuclearMolecule"; }
 };
 
-class Quantity : public State, public Metrological
-{
-private:
-  double* numb;
+class Quantity : public State, public Metrological {
+public:
+  double* value;
   std::string* unit;
 
-public:
-    Quantity(Real* _s, Unit* _u)
-    {
-        numb = &_s->data;
-        unit = &_u->data;
-        State::createRelationsTo<hasPart,Thing>({_u,_s});
-    }
+  Quantity(Real* _s, Unit* _u)
+  {
+      value = &_s->value;
+      unit = &_u->value;
+      createRelationsTo<hasPart,Thing>({_u,_s});
+  }
 
-    std::string getClassName() const { return "Quantity"; }
+  std::string getClassName() const { return "Quantity"; }
 
-    double* onData() { return numb; }
-    std::string* onUnit() { return unit; }
+  double* get_data() { return value; }
+  std::string* get_unit() { return unit; }
+
+  void set_data(double val) { *value = val; }
+  void set_unit(std::string str) { *unit = str; }
 };
 
-class PhysicalQuantity : public Quantity
-{
+class PhysicalQuantity : public Quantity {
 public:
     PhysicalQuantity(Real* _s, Unit* _u) : Quantity(_s,_u)
     {
@@ -406,8 +392,7 @@ public:
     std::string getClassName() const { return "PhysicalQuantity"; }
 };
 
-class BaseQuantity : public PhysicalQuantity
-{
+class BaseQuantity : public PhysicalQuantity {
 public:
     BaseQuantity(Real* _s, Unit* _u) : PhysicalQuantity(_s,_u)
     {
@@ -424,8 +409,7 @@ public:
     std::string getClassName() const { return "Time"; }
 };
 
-class DerivedQuantity : public PhysicalQuantity
-{
+class DerivedQuantity : public PhysicalQuantity {
 public:
     DerivedQuantity(Real* _s, Unit* _u) : PhysicalQuantity(_s,_u)
     {
@@ -435,136 +419,119 @@ public:
     std::string getClassName() const { return "DerivedQuantity"; }
 };
 
-class Pressure : public DerivedQuantity
-{
+class Pressure : public DerivedQuantity {
 public:
     Pressure(Real* _s, Unit* _u) : DerivedQuantity(_s,_u) {}
 
     std::string getClassName() const { return "Pressure"; }
 };
 
-class Temperature : public BaseQuantity
-{
+class Temperature : public BaseQuantity {
 public:
     Temperature(Real* _s, Unit* _u) : BaseQuantity(_s,_u) {}
 
     std::string getClassName() const { return "Temperature"; }
 };
 
-class Mass : public BaseQuantity
-{
+class Mass : public BaseQuantity {
 public:
     Mass(Real* _s, Unit* _u) : BaseQuantity(_s,_u) {}
 
     std::string getClassName() const { return "Mass"; }
 };
 
-class Density : public DerivedQuantity
-{
+class Density : public DerivedQuantity {
 public:
     Density(Real* _s, Unit* _u) : DerivedQuantity(_s,_u) {}
 
     std::string getClassName() const { return "Density"; }
 };
 
-class BulkDensityLiquid : public Density
-{
+class BulkDensityLiquid : public Density {
 public:
     BulkDensityLiquid(Real* _s, Unit* _u) : Density(_s,_u) {}
 
     std::string getClassName() const { return "BulkDensityLiquid"; }
 };
 
-class BulkDensitySolid : public Density
-{
+class BulkDensitySolid : public Density {
 public:
     BulkDensitySolid(Real* _s, Unit* _u) : Density(_s,_u) {}
 
     std::string getClassName() const { return "BulkDensitySolid"; }
 };
 
-class ISQDimensionlessQuantity : public DerivedQuantity
-{
+class ISQDimensionlessQuantity : public DerivedQuantity {
 public:
     ISQDimensionlessQuantity(Real* _s, Unit* _u) : DerivedQuantity(_s,_u) {}
 
     std::string getClassName() const { return "ISQDimensionlessQuantity"; }
 };
 
-class RatioQuantity : public ISQDimensionlessQuantity
-{
+class RatioQuantity : public ISQDimensionlessQuantity {
 public:
     RatioQuantity(Real* _s, Unit* _u) : ISQDimensionlessQuantity(_s,_u) {}
 
     std::string getClassName() const { return "RatioQuantity"; }
 };
 
-class MolarFraction : public RatioQuantity
-{
+class MolarFraction : public RatioQuantity {
 public:
     MolarFraction(Real* _s, Unit* _u) : RatioQuantity(_s,_u) {}
 
     std::string getClassName() const { return "MolarFraction"; }
 };
 
-class Viscosity : public DerivedQuantity
-{
+class Viscosity : public DerivedQuantity {
 public:
     Viscosity(Real* _s, Unit* _u) : DerivedQuantity(_s,_u) {}
 
     std::string getClassName() const { return "Viscosity"; }
 };
 
-class DynamicViscosity : public Viscosity
-{
+class DynamicViscosity : public Viscosity {
 public:
     DynamicViscosity(Real* _s, Unit* _u) : Viscosity(_s,_u) {}
 
     std::string getClassName() const { return "DynamicViscosity"; }
 };
 
-class KinematicViscosity : public Viscosity
-{
+class KinematicViscosity : public Viscosity {
 public:
     KinematicViscosity(Real* _s, Unit* _u) : Viscosity(_s,_u) {}
 
     std::string getClassName() const { return "KinematicViscosity"; }
 };
 
-class SurfaceTension : public DerivedQuantity
-{
+class SurfaceTension : public DerivedQuantity {
 public:
     SurfaceTension(Real* _s, Unit* _u) : DerivedQuantity(_s,_u) {}
 
     std::string getClassName() const { return "SurfaceTension"; }
 };
 
-class SaturationPressure : public DerivedQuantity
-{
+class SaturationPressure : public DerivedQuantity {
 public:
     SaturationPressure(Real* _s, Unit* _u) : DerivedQuantity(_s,_u) {}
 
     std::string getClassName() const { return "SaturationPressure"; }
 };
 
-class PressureTimeDerivative : public DerivedQuantity
-{
+class PressureTimeDerivative : public DerivedQuantity {
 public:
     PressureTimeDerivative(Real* _s, Unit* _u) : DerivedQuantity(_s,_u) {}
 
     std::string getClassName() const { return "PressureTimeDerivative"; }
 };
 
-class TemperatureTimeDerivative : public DerivedQuantity
-{
+class TemperatureTimeDerivative : public DerivedQuantity {
 public:
     TemperatureTimeDerivative(Real* _s, Unit* _u) : DerivedQuantity(_s,_u) {}
 
     std::string getClassName() const { return "TemperatureTimeDerivative"; }
 };
 
-class MeltingPoint : public Temperature
-{
+class MeltingPoint : public Temperature {
 public:
     MeltingPoint(Real* _s, Unit* _u) : Temperature(_s,_u) {}
 
@@ -575,10 +542,25 @@ class SingleComponentComposition : public ChemicalComposition {
 public:
     MolarFraction* mol;
     std::string name;
-
     SingleComponentComposition(MolarFraction* _mol, std::string _name) { mol = _mol; name = _name; }
+
     std::string getClassName() const { return "SingleComponentComposition"; }
 };
+
+class LennardJonesEpsilon : public DerivedQuantity {
+public:
+    LennardJonesEpsilon(Real* _s, Unit* _u) : DerivedQuantity(_s,_u) {}
+
+    std::string getClassName() const { return "Lennard-Jones epsilon coefficient"; }
+};
+
+class LennardJonesSigma : public DerivedQuantity {
+public:
+    LennardJonesSigma(Real* _s, Unit* _u) : DerivedQuantity(_s,_u) {}
+
+    std::string getClassName() const { return "Lennard-Jones sigma coefficient"; }
+};
+
 
 #include "thing.cpp"
 

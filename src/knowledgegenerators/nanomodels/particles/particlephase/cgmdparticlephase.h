@@ -32,48 +32,42 @@ class CGMDParticlePhase : public ParticlePhase<A> {
 
 public:
 
-    /// Constructor
-    CGMDParticlePhase(double _volume) :ParticlePhase<A>(_volume),
-        max_aggregates_number(100),
-        min_aggregates_number(90) {}
+  /// Constructor
+  CGMDParticlePhase(double _volume) :ParticlePhase<A>(_volume),
+  max_aggregates_number(100),
+  min_aggregates_number(90) {}
 
-    /// Simulation Timestep
-    //virtual double timestep(double dt, const GasPhase& gp, const NucleationTheory& nt) = 0;
+  /// Simulation Timestep
+  //virtual double timestep(double dt, const GasPhase& gp, const NucleationTheory& nt) = 0;
 
 protected:
 
-    /// Evaluates the Langevin motion of the particles
-    ///	\param	double dt: Simulation's Time Step [s]
-    /// \param	GasPhase& gp: Gas Phase data
-    /// \param	 double T: Temperature [K]
-    virtual void motion(double dt, GasModels* gp, double T) = 0;
+  /// Evaluates the Langevin motion of the particles
+  /// \param	double dt: Simulation's Time Step [s]
+  /// \param	GasPhase& gp: Gas Phase data
+  /// \param	double T: Temperature [K]
+  virtual void motion(double dt, double T) = 0;
 
-    /// Coagulation
-    virtual void coagulation() = 0;
+  /// Coagulation
+  virtual void coagulation() = 0;
 
-    /// Maximum number of aggregates. Further nucleations will lead to the removal of
-    /// an aggregate and a volume reduction.
-    int max_aggregates_number;
+  /// Maximum number of aggregates. Further nucleations will lead to the removal of
+  /// an aggregate and a volume reduction.
+  int max_aggregates_number;
 
-    /// Minumum number of aggregates. Further reductions will lead to
-    /// the duplication of a randomly chosen aggregate.
-    int min_aggregates_number;
+  /// Minumum number of aggregates. Further reductions will lead to
+  /// the duplication of a randomly chosen aggregate.
+  int min_aggregates_number;
 
 public:
 
-    /// Sets the maximum number of aggregates allowed in the simulation
-    ///	\param int _agg_max: maximum number of aggregates in the simulation
-    void set_max_agg_number(int _agg_max) { this->max_aggregates_number = _agg_max; }
+  /// Sets the maximum number of aggregates allowed in the simulation
+  ///	\param int _agg_max: maximum number of aggregates in the simulation
+  void set_max_agg_number(int _agg_max) { max_aggregates_number = _agg_max; }
 
-    /// Sets the minimum number of aggregates allowed in the simulation
-    ///	\param int _agg_min: maximum number of aggregates in the simulation
-    void set_min_agg_number(int _agg_min) { this->min_aggregates_number = _agg_min; }
-
-    /// Returns the maximum number of aggregates allowed in the simulation
-    int get_max_agg_number() { return max_aggregates_number; }
-
-    /// Returns the minimum number of aggregates allowed in the simulation
-    int get_min_agg_number() { return min_aggregates_number; }
+  /// Sets the minimum number of aggregates allowed in the simulation
+  ///	\param int _agg_min: maximum number of aggregates in the simulation
+  void set_min_agg_number(int _agg_min) { min_aggregates_number = _agg_min; }
 
 };
 

@@ -53,11 +53,20 @@ public:
     /// \param _volume PP volume [m3]
     PBMParticlePhase(double _volume = 1e-18) : ParticlePhase<A>(_volume) {}
 
+    /// Calculates timestep based on total collisions number
+    double calc_dt() {
+      // Initialize the model if not done before
+      if (this->init == false) { this->initialize(); }
+
+      R_tot = this->get_total_processes_rate();
+      return -log(ndm::uniform_double_distr(ndm::rand_gen))/this->R_tot;
+    }
+
     /// Get total particle processes rate [#/s]
-    double get_total_processes_rate(GasModels* gp, NucleationTheory* nt);
+    double get_total_processes_rate();
 
     /// Perform the PP timestep [#/m3 s]
-    double timestep(double dt, GasModels* gp, NucleationTheory* nt, SingleComponentComposition* sp);
+    double timestep(double dt);
 
     /// Get the aggregate with index n
     ///	\param int index [0, N particles - 1]
@@ -84,19 +93,19 @@ public:
     // DUMP all aggregates to a file
     void dump_aggregates(std::ofstream& _dump);
 
+    /// Adjust the aggregates number between N_max and N_min.
+    void aggregates_number_balance();
+
 private:
 
     // particles process rates [1/s]
     double R_nucl, R_coag, R_null, R_tot;
 
-    /// Adjust the aggregates number between N_max and N_min.
-    void aggregates_number_balance();
-
     /// Recalculate the rates for nucleation and coagulation.
     void update_rates(GasModels* gp, NucleationTheory* nt);
 
     /// Nucleation of a single new aggregate [#/m3 s]
-    virtual double nucleation(double j, SingleComponentComposition* s) = 0;
+    virtual double nucleation(double j) = 0;
 
     /// Coagulation of two randomly chosen aggregates
     void coagulation();
@@ -108,22 +117,21 @@ private:
     /// Updates K1, K2, K21, K22 using actual aggregates population.
     void update_majorant_kernel_parameters();
 
-
-
     /// Select two aggregates for coagulation.
     void aggregates_selection(std::shared_ptr<A>& a0, std::shared_ptr<A>& a1);
+
 // ###########################################################
 };
 
 template<typename A>
-double PBMParticlePhase<A>::get_total_processes_rate(GasModels* gp, NucleationTheory* nt) {
+double PBMParticlePhase<A>::get_total_processes_rate() {
 
     // setting the simulation parameters with default values
     dt_max = 1e-8; // [s]
     //max_aggregates_number = 2000;
     //min_aggregates_number = 1990;
 
-    update_rates(gp,nt);
+    update_rates(this->gp,this->nt);
 
     return R_tot;
 }
@@ -146,13 +154,15 @@ std::shared_ptr<PBMAggregate<Particle>> PBMParticlePhase<A>::get_aggregate(int i
 
 
 template<typename A>
-double PBMParticlePhase<A>::timestep(double dt, GasModels* gp, NucleationTheory* nt, SingleComponentComposition* sp) {
+double PBMParticlePhase<A>::timestep(double dt) {
 
     // MONOSPECIES!!!
 
+    // Initialize the model if not done before
+    if (this->init == false) { this->initialize(); }
+
     // nucleating species concentration and temperature
-    double T  = gp->get_T();
-    double S  = gp->get_S(sp);
+    double S = this->gp->get_S(this->sp);
 
     // monomers consuption rate [#/m3 s]
     double consumption = 0;
@@ -163,9 +173,9 @@ double PBMParticlePhase<A>::timestep(double dt, GasModels* gp, NucleationTheory*
     if(rho <= R_nucl/R_tot) {
 
         // nucleation
-        double j = nt->stable_cluster_diameter();
+        double j = this->nt->stable_cluster_diameter();
 
-        consumption += nucleation(j,sp)/dt;
+        consumption += nucleation(j)/dt;
 
     } else if(rho<=(R_nucl+R_coag)/R_tot) {
 
@@ -174,12 +184,12 @@ double PBMParticlePhase<A>::timestep(double dt, GasModels* gp, NucleationTheory*
 
     // apply condensation
     if (S < 1) S = 1.0;
-    double Fs = nt->condensation_rate();
+    double Fs = this->nt->condensation_rate();
 
     consumption += this->condensation(dt,Fs);
 
     // apply sintering
-    this->sintering(dt,T);
+    this->sintering(dt,*this->T);
 
     // adjust the aggregates number
     aggregates_number_balance();

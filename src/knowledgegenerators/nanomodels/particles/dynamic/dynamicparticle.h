@@ -34,8 +34,8 @@ public:
     ///	\param double _n number of molecules
     ///	\param Species _s Species Molecules Species
     ///	\param std::valarray<double> _x Molecule position
-    DynamicParticle(double _n, SingleComponentComposition* _s, NucleationTheory* _nt, std::valarray<double> _x) :
-        Particle(_n,_s,_nt), DynamicPoint(_x) {}
+    DynamicParticle(double _n, SingleComponentComposition* _s, std::valarray<double> _x) :
+        Particle(_n,_s,nt), DynamicPoint(_x) {}
 
 
 };

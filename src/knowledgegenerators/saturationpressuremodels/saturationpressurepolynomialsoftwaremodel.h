@@ -17,18 +17,9 @@ private:
     double* sval; ///< Pointer to the species's property data type.
 
 public:
-    SaturationPressurePolynomialSoftwareModel() : SoftwareModel() {
+    SaturationPressurePolynomialSoftwareModel() : SoftwareModel() {}
 
-//      SaturationPressure* dummyS = nullptr;
-//      IUPAC* dummyI = nullptr;
-//      Real* dummyR = nullptr;
-
-//      this->SoftwareModel::createRelationTo<hasModel>(dummyS);
-//      this->SoftwareModel::createRelationTo<hasInput>(dummyI);
-//      this->SoftwareModel::createRelationTo<hasOutput>(dummyR);
-    }
-
-    std::string getClassName() const { return "SaturationPressurePolynomialModel"; }
+    std::string getClassName() const { return "SaturationPressurePolynomialSoftwareModel"; }
 
     /// Returns a brief description of the software model by means of its mathematical representation
     /// and the used parameters.
@@ -45,11 +36,11 @@ public:
       if (s.size() == 0) {
         std::string _name = findNearest<SingleComponentComposition>()->name;
         s = get_coeffs(_name);
-        sval = &findNearest<SaturationPressure>()->getRelatedObjects<Real>()[0]->data;
+        sval = &findNearest<SaturationPressure>()->getRelatedObjects<Real>()[0]->value;
       }
 
       // Get the object's first related temperature
-      double T = findNearest<Temperature>()->getRelatedObjects<Real>()[0]->data;
+      double T = findNearest<Temperature>()->getRelatedObjects<Real>()[0]->value;
 
       // Compute the value and push it to the Species' Saturation Pressure object
       *sval = impl(T);
@@ -58,14 +49,38 @@ public:
     /// Return the coefficients needed by the model on given chemical element name.
     /// \param name species name.
     std::vector<double> get_coeffs(std::string _name) const {
-      if (_name == "Silicon") {
+      if (_name == "Si") {
         return {7.5341, 23399.};
       }
-      else if (_name == "Argon") {
+      else if (_name == "Ar") {
         return {0.,0.};
       }
-      else if (_name == "Helium") {
+      else if (_name == "H2") {
         return {0.,0.};
+      }
+      else if (_name == "N2") {
+        return {0.,0.};
+      }
+      else if (_name == "O2") {
+        return {0.,0.};
+      }
+      else if (_name == "Fe") {
+        return {12.535,21400.};
+      }
+      else if (_name == "Ti") {
+        return {15.5,55200.};
+      }
+      else if (_name == "Cu") {
+        return {10.845,16580.};
+      }
+      else if (_name == "Al") {
+        return {5.911,16211.};
+      }
+      else if (_name == "He") {
+        return {0.,0.};
+      }
+      else if (_name == "Ag") {
+        return {10.785,13827.};
       }
       else { abort(); }
     }

@@ -29,8 +29,8 @@ template<typename A>
 class DynamicParticlePhase : public CGMDParticlePhase<A> {
 
 protected:
-    /// Linked-Cell Grid
-    Grid grid;
+  /// Linked-Cell Grid
+  Grid grid;
 
 public:
 

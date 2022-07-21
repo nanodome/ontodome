@@ -34,17 +34,21 @@
 /// particle shape is assumed to be spherical.
 class Particle : public MesoObject, public ObjectCounter<Particle> {
 
+public:
+
     double n;  ///< number of monomers
     SingleComponentComposition* s; ///< species composing the particle
     NucleationTheory* nt;
-
-public:
 
     /// Constructor.
     /// \param _n number of molecules in the particle [#]
     /// \param _nt pointer to nucleation theory
     /// \param _s pointer to species type
-    Particle(double _n, SingleComponentComposition* _s, NucleationTheory* _nt) : n(_n), s(_s), nt(_nt) { }
+    Particle(double _n, SingleComponentComposition* _s, NucleationTheory* _nt) : n(_n), s(_s), nt(_nt) {
+
+      nt = s->findNearest<NucleationTheory>();
+
+    }
 
 
     /// Copy constructor
@@ -81,13 +85,13 @@ Particle::Particle(Particle& p1) : ObjectCounter<Particle>(p1), s(p1.s), nt(p1.n
 
 double Particle::get_mass() {
 
-    return get_n()* *s->findNearest<Mass>()->onData();
+    return get_n()* *s->findNearest<Mass>()->get_data();
 }
 
 
 double Particle::get_volume()  {
 
-    return get_n()*nt->get_m_volume();
+    return get_n() * nt->get_m_volume();
 }
 
 

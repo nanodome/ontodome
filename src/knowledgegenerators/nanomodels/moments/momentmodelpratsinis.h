@@ -33,7 +33,7 @@
 /// S.E. Pratsinis, Journal of Colloid and Interface Science, Vol. 124, No. 2, August 1988
 class MomentModelPratsinis : public MomentsModel {
 
-protected:
+private:
     double M0; ///< Nanoparticles number density [#/m3]
     double M1; ///< Nanoparticles total volume [1/m2]
     double M2; ///< Nanoparticles total surface area [m2]
@@ -55,31 +55,17 @@ protected:
 public:
     /// Standard constructor.
     MomentModelPratsinis() : MomentsModel() {
-      // List of compatible entities
-//      createRelationTo<isModelFor,Thing>(new HomonuclearMolecule);
-//      createRelationTo<isModelFor,Thing>(new HeteronuclearMolecule);
-
-//      // List of required models
-//      createRelationTo<requiresModelFor,Thing>(new GasMixture);
-//      createRelationTo<requiresModelFor,Thing>(new HomonuclearMolecule);
-//      createRelationTo<requiresModelFor,Thing>(new HeteronuclearMolecule);
 
       M0=0.; M1=0.; M2=0.;
     }
 
     /// Constructor with initialization for the moments
     MomentModelPratsinis(double _M0, double _M1, double _M2) : MomentsModel() {
-//      // List of compatible entities
-//      createRelationTo<isModelFor,Thing>(new PolyatomicEntity);
-
-//      // List of required models
-//      createRelationTo<requiresModelFor,Thing>(new GasMixture);
-//      createRelationTo<requiresModelFor,Thing>(new PolyatomicEntity);
 
       M0 = _M0; M1 = _M1; M2 = _M2;
     }
 
-protected:
+private:
     /// Initialize the method - attempt to save computational time
     void initialize() {
 
@@ -89,33 +75,22 @@ protected:
       nt = findNearest<NucleationTheory>();
 
       gasmodel = findNearest<GasModels>();
-      s_mass = *species->findNearest<Mass>()->onData();
+      s_mass =  *species->getRelatedObjects<Mass>()[0]->get_data();
 
-      T = gasmodel->findNearest<Temperature>()->onData();
+      T = gasmodel->findNearest<Temperature>()->get_data();
 
       //PER IL MOMENTO LO USO COSI'. IN FUTURO ANDRA' CERCATO IN BASE AGLI INPUT E AGLI OUTPUT DI UN MODELLO
       s_m_vol = nt->get_m_volume();
 
-      s_bulk_density_liq = *species->getRelatedObjects<BulkDensityLiquid>()[0]->onData();
-      s_bulk_density_sol = *species->getRelatedObjects<BulkDensitySolid>()[0]->onData();
-      s_T_melt = *species->getRelatedObjects<MeltingPoint>()[0]->onData();
+      s_bulk_density_liq = *species->getRelatedObjects<BulkDensityLiquid>()[0]->get_data();
+      s_bulk_density_sol = *species->getRelatedObjects<BulkDensitySolid>()[0]->get_data();
+      s_T_melt = *species->getRelatedObjects<MeltingPoint>()[0]->get_data();
 
       init = true;
     }
 
+
 public:
-    /// Nanoparticle density [#/m3]
-    double get_n_density() { return M0; }
-
-    /// Nanoparticle mean diameter [m]
-    double get_mean_diameter() { return (M0>0.0) ? pow(6*M1/(M_PI*M0),1./3.) : 0.0; }
-
-    /// Nanoparticle volume density [m3/m3]
-    double get_total_volume() { return M1; }
-
-    /// Nanoparticle total area [m6/m3]
-    double get_total_area() { return M2; }
-
     /// Timestep calculation
     /// \param dt timestep size [s]
     double timestep(double dt) {
@@ -165,17 +140,17 @@ public:
       double sg = exp(sqrt(ln2sg));
 
       // coagulation source for each moment
-//      double M0_coag =   t_csi2*zeta0(sg)*(  M_k(2./3.,ln2sg,vg) * M_k(-1./2.,ln2sg,vg) +
-//                                            2*M_k(1./3.,ln2sg,vg) * M_k(-1./6.,ln2sg,vg) +
-//                                              M_k(1./6.,ln2sg,vg) * M0);
+      double M0_coag =   t_csi2*zeta0(sg)*(  M_k(2./3.,ln2sg,vg) * M_k(-1./2.,ln2sg,vg) +
+                                            2*M_k(1./3.,ln2sg,vg) * M_k(-1./6.,ln2sg,vg) +
+                                              M_k(1./6.,ln2sg,vg) * M0);
 
-//      double M2_coag = 2*t_csi2*zeta2(sg)*(  M_k(5./3.,ln2sg,vg) * M_k(1./2.,ln2sg,vg) +
-//                                            2*M_k(4./3.,ln2sg,vg) * M_k(5./6.,ln2sg,vg) +
-//                                              M_k(7./6.,ln2sg,vg) * M1);
+      double M2_coag = 2*t_csi2*zeta2(sg)*(  M_k(5./3.,ln2sg,vg) * M_k(1./2.,ln2sg,vg) +
+                                            2*M_k(4./3.,ln2sg,vg) * M_k(5./6.,ln2sg,vg) +
+                                              M_k(7./6.,ln2sg,vg) * M1);
 
       // TEST
-      double M0_coag = 0.0;
-      double M2_coag = 0.0;
+//      double M0_coag = 0.0;
+//      double M2_coag = 0.0;
 
       // dissolution source: if S<1 then the flux of particles becoming smaller than a two monomers cluster
       // due to evaporation is removed from the particle set
@@ -268,6 +243,22 @@ public:
       return -g;
     }
 
+public:
+
+    /// Nanoparticle density [#/m3]
+    double get_n_density() { return M0; }
+
+    /// Nanoparticle mean diameter [m]
+    double get_mean_diameter() { return (M0>0.0) ? pow(6*M1/(M_PI*M0),1./3.) : 0.0; }
+
+private:
+
+    /// Nanoparticle volume density [m3/m3]
+    double get_total_volume() { return M1; }
+
+    /// Nanoparticle total area [m6/m3]
+    double get_total_area() { return M2; }
+
     /// Return the geometric mean volume [m3]
     double geometric_mean_v() {
 
@@ -317,8 +308,9 @@ public:
     /// Get M2
     double get_M2() { return M2; }
 
+public:
     /// Get Lognormal
-    void get_lognormal_val(const std::string& path) {
+    void print_lognormal_val(const std::string path) {
 
       std::ofstream _o_file;
       _o_file.open(path, std::ofstream::app);
@@ -352,6 +344,8 @@ public:
       _o_file.close();
 
     }
+
+private:
 
     /// Get Lognormal (Streamlines)
     void get_lognormal_val(int _s_index) {

@@ -8,10 +8,10 @@
 template<class T>
 struct DataType
 {
-    T data;
+    T value;
 
     DataType() {}
-    DataType(T _data) : data(_data) {}
+    DataType(T _value) : value(_value) {}
 };
 
 #endif // DATATYPES_H

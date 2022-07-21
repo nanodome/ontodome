@@ -50,6 +50,14 @@ protected:
 
 public:
 
+    /// Common variables declaration.
+    GasModels* gp; ///< Pointer to currently used GasModel
+    NucleationTheory* nt; ///< Pointer to currently used Nucleation theory
+    SingleComponentComposition* sp; ///< Pointer to the species for which the PBM method instance is defined
+    double* T; ///< Pointer to gas temperature
+
+    bool init = false; ///< Boolean value which stores whether the model is initialized or not.
+
     /// Constructor with a volume equivalent to a cube of 1um side
     /// \param _volume volume size [m3]
     ParticlePhase(double _volume) : volume(_volume) {}
@@ -60,7 +68,7 @@ public:
     /// Correct volume due to gas expansion
     /// \param dt timestep [s]
     /// \param gp gas phase surrounding particles
-    void volume_expansion(double dt, GasModels* gp);
+    void volume_expansion(double dt);
 
     /// Get the number of aggregates.
     int get_aggregates_number() const { return aggregates.size(); }
@@ -99,6 +107,22 @@ public:
     /// Get all aggregates spherical (for PSD evaluation)
     std::valarray<double> get_aggregates_sizes() const;
 
+    /// Initialize the method - attempt to save computational time
+    void initialize() {
+
+      // Get all the required inputs
+
+      nt = findNearest<NucleationTheory>();
+
+      gp = findNearest<GasModels>();
+
+      sp = findNearest<SingleComponentComposition>();
+
+      T = gp->findNearest<Temperature>()->get_data();
+
+      init = true;
+    }
+
 protected:
 
     /// Evaluates condensation for each aggregate and return the volumetric molecules
@@ -114,7 +138,7 @@ protected:
 };
 
 template<typename A>
-void ParticlePhase<A>::volume_expansion(double dt, GasModels* gp) {
+void ParticlePhase<A>::volume_expansion(double dt) {
 
         volume *= exp(gp->get_gamma()*dt);
 }
@@ -228,6 +252,9 @@ double ParticlePhase<A>::get_mean_sintering_level() const {
 
 template<typename A>
 double ParticlePhase<A>::condensation(double dt, double Fs) {
+
+  // Initialize the model if not done before
+  if (init == false) { initialize(); }
 
     double n_tot = 0;
 

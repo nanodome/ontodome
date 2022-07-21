@@ -1,253 +1,252 @@
 #include "ontodome.h"
+
+//// PyBind11 tools
 #include "pybind11/pybind11.h"
+#include "pybind11/stl.h"
+namespace py = pybind11;
 
-int main()
-{
-    // Setting a clock to keep track of computational time
-    WallClock clock;
-    clock.start();
 
-    // GasMixture initial state declaration
-    GasMixture gas;
 
-    Time t(new Real(0), new Unit("s"));
-    gas.createRelationTo<hasProperty,Time>(&t);
+/// Internal tools
+nanoNetwork create_network(std::vector<SingleComponentComposition> specs, std::vector<double> pp, std::vector<double> TT, std::vector<std::valarray<double>> cs) {
 
-    MolarFraction msi(new Real(0.05), new Unit("#"));
-    SingleComponentComposition si(&msi,SiliconSymbol::get_symbol());
-    MolarFraction mhe(new Real(0.95), new Unit("#"));
-    SingleComponentComposition he(&mhe,HeliumSymbol::get_symbol());
+  std::vector<std::shared_ptr<nanoCell>> cells;
 
-    Temperature T(new Real(20000.), new Unit("K"));
-    Pressure p(new Real(101325.), new Unit("Pa"));
-    PressureTimeDerivative dpdt(new Real(0.), new Unit("Pa/s"));
-    TemperatureTimeDerivative dTdt(new Real(-1e+7), new Unit("K/s"));
+  for (int k=0; k < int(cs.size()); k++) {
+    cells.push_back(std::shared_ptr<nanoCell>(new nanoCell(specs, pp[k], TT[k], cs[k])));
+  }
 
-    gas.createRelationsTo<hasPart,SingleComponentComposition>({&si,&he});
-    gas.createRelationTo<hasProperty,Temperature>(&T);
-    gas.createRelationTo<hasProperty,Pressure>(&p);
-    gas.createRelationTo<hasProperty,PressureTimeDerivative>(&dpdt);
-    gas.createRelationTo<hasProperty,TemperatureTimeDerivative>(&dTdt);
+  nanoNetwork net(cells);
 
-    // Surface Tension and Saturation Pressure settings
-    SurfaceTensionPolynomialSoftwareModel stpm;
-    SurfaceTensionMaterialRelation stmr;
-    SurfaceTension st(new Real(0.), new Unit("N/m"));
+  return net;
+}
 
-    stmr.createRelationTo<hasSoftwareModel,SurfaceTensionPolynomialSoftwareModel>(&stpm);
-    st.createRelationTo<hasMathematicalModel,SurfaceTensionMaterialRelation>(&stmr);
-    si.createRelationTo<hasProperty,SurfaceTension>(&st);
-    si.getRelatedObjects<SurfaceTension>()[0]->getRelatedObjects<SurfaceTensionMaterialRelation>()[0]->run();
+/// Trampoline methods. Avoid PyBind11 static cast.
+template <class R, class O1, class O2>
+void create_relation_to(O1* o1, O2* o2) {
+  o1->template createRelationTo<R, O2>(o2);
+}
 
-    SaturationPressurePolynomialSoftwareModel sapm;
-    SaturationPressureMaterialRelation samr;
-    SaturationPressure sa(new Real(0.), new Unit("Pa"));
+template <class O1, class O2>
+std::vector<O2*> get_related_objects(O1* o1, O2 o2) {
+  return o1->template getRelatedObjects<O2>();
+}
 
-    samr.createRelationTo<hasSoftwareModel,SaturationPressurePolynomialSoftwareModel>(&sapm);
-    sa.createRelationTo<hasMathematicalModel,SaturationPressureMaterialRelation>(&samr);
-    si.createRelationTo<hasProperty,SaturationPressure>(&sa);
-
-    // Si properties
-    Mass sim(new Real(28.0855*AMU), new Unit("kg"));
-    sim.createRelationTo<hasScalarProperty,SingleComponentComposition>(&si);
-
-    BulkDensityLiquid sibl(new Real(2570.), new Unit("kg/m3"));
-    sibl.createRelationTo<hasScalarProperty,SingleComponentComposition>(&si);
-
-    BulkDensitySolid sibs(new Real(2329.), new Unit("kg/m3"));
-    sibs.createRelationTo<hasScalarProperty,SingleComponentComposition>(&si);
-
-    MeltingPoint melp(new Real(1687.), new Unit("K"));
-    melp.createRelationTo<hasScalarProperty,SingleComponentComposition>(&si);
-
-    // Helium properties
-    Mass hem(new Real(4.005*AMU), new Unit("kg"));
-    hem.createRelationTo<hasScalarProperty,SingleComponentComposition>(&he);
-
-    // Models settings
-    Time dt(new Real(1e-7), new Unit("s")); // simulation timestep. This definition is not ontologically correct
-
-    GasModel gm;
-    gm.createRelationTo<hasModel,GasMixture>(&gas);
-
-    ClassicalNucleationTheory cnt;
-    cnt.createRelationTo<hasModel,SingleComponentComposition>(&si);
-
-    MomentModelPratsinis mom;
-    mom.createRelationTo<hasModel,SingleComponentComposition>(&si);
-
-//    PBMFractalParticlePhase<PBMAggregate<Particle>> pp(1.61, 5.0e-16);
-//    pp.createRelationTo<hasModel,SingleComponentComposition>(&si);
-
-    // Common settings
-    int PRINT_EVERY = 1;
-    int iter = 0;
-
-    ConstrainedLangevinParticlePhase<RATTLEAggregate<DynamicParticle>> cgmd(5e-19);
-    cgmd.createRelationTo<hasModel,SingleComponentComposition>(&si);
-
-/*
-
-    // CGMD loop
-    double SAVE_SNAPSHOT = 1.0e-8;
-    std::string vtk_path = "E/vtk/";
-    double snap_count = 0.0; // Counter for saving VTK file
-
-    // Temporary assignments. To be removed during second CGMD release
-    double* T_melt = si.getRelatedObjects<MeltingPoint>()[0]->onData();
-    double* s_bulk_density_sol = si.getRelatedObjects<BulkDensitySolid>()[0]->onData();
-    double* s_bulk_density_liq = si.getRelatedObjects<BulkDensityLiquid>()[0]->onData();
-
-    // Simulation Main Cycle
-    while (*t.onData() <= 0.005) {
-
-        if (gm.get_T() < 300.)
-        { *dTdt.onData() = 0.; }
-
-        //Bulk density calculation
-        // Initialize the model if not done before
-        double bdens = (gm.get_T() < *T_melt) ? *s_bulk_density_sol : *s_bulk_density_liq;
-
-        // check the smallest particle in the system
-        double d_min = cgmd.get_particles_smallest_diameter();
-
-        // calculate dt max for langevin equation stability dt (dt < 2*m/alpha)
-        double dt_max_lang = d_min*bdens/gm.get_gas_flux();
-
-        // calculate dt max to have v*dt < d/2 for the smallest particle
-        double dt_max_coll = sqrt(M_PI*bdens*pow(d_min,5)/(24*3*K_BOL*gm.get_T()));
-
-        if(cgmd.get_aggregates_number()>=1) {
-            *dt.onData() = std::min(dt_max_coll,dt_max_lang);
-            if(*dt.onData()>1e-10) *dt.onData() = 1.0e-10;
-         }
-
-        // particle phase timestep
-        double g_cons = cgmd.timestep(*dt.onData(), &gm, &cnt, *T.onData(), &si);
-
-        // gas phase time step
-        gm.timestep(*dt.onData(), { -g_cons, 0.0 });
-
-        // Update elapsed time and iterations
-        *t.onData() += *dt.onData();
-        snap_count += *dt.onData();
-        iter++;
-
-        // Print snapshot
-        if (counter_trigger(iter,PRINT_EVERY)) {
-            std::cout << "t[s]: " << *t.onData() << '\t'
-                      << dt_max_coll << '\t'
-                      << dt_max_lang << '\t'
-                      << "T[K]: " << gm.get_T() << '\t'
-                      << "V[m^3]"<< cgmd.get_volume() << '\t'
-                      << "|N|: " << cgmd.get_aggregates_number() << '\t'
- //                     << "max|N|: " << cgmd.get_max_agg_number() << '\t'
-//                      << "min|N|: " << cgmd.get_min_agg_number() << '\t'
-//                      << "|C|: " << cgmd.get_aggregates_cardinality()
-                      << std::endl;
-          }
-
-//        // Save VTK
-//        if (snap_count >= SAVE_SNAPSHOT && pp.get_aggregates_number() > 0) {
-//            cgmd.save_vtk(iterations, vtk_path);
-//            snap_count = 0.0;
-//          }
-
+template <class O1>
+std::vector<std::string> list_relations(O1* o1) {
+  std::vector<std::string> res;
+  for (auto x : o1->relations) {
+      if (x->getRange()->getUuid() != o1->getUuid()) {
+          res.push_back(x->getRange()->getClassName());
+      } else {
+          res.push_back(x->getDomain()->getClassName());
       }
+  }
+  return res;
+}
 
-*/
+// Binding module
+PYBIND11_MODULE(libontodome, m) {
+  m.doc() = "NanoDOME python plugin library for SimPhony";
 
-/*
-    // PBM loop
-    // loop over timesteps
-    while(*t.onData() < 0.005) {
+  py::class_<Real>(m,"Real")
+      .def(py::init<double>())
+      .def_readwrite("value", &Real::value); // to check if python assignments are correctly updated between object via pointers
 
-      if (gm.get_T() < 300.)
-      { *dTdt.onData() = 0.; }
+  py::class_<Unit>(m,"Unit")
+      .def(py::init<std::string>());
 
-      // species source term for the gas phase
-      double g_si = 0.0;
+  py::class_<Time>(m,"Time")
+      .def(py::init<Real*,Unit*>())
+      .def_property("value", &Time::get_data, &Time::set_data)
+      .def_property("unit", &Time::get_unit, &Time::set_unit);
 
-      // calculate the timestep using an exponential waiting time
-      double R_tot = pp.get_total_processes_rate(&gm,&cnt);
-      double rho = ndm::uniform_double_distr(ndm::rand_gen);
+  py::class_<Mass>(m,"Mass")
+      .def(py::init<Real*,Unit*>())
+      .def_property("value", &Mass::get_data, &Mass::set_data)
+      .def_property("unit", &Mass::get_unit, &Mass::set_unit);
 
-      // exponential waiting time
-      double dt_ = -log(rho)/R_tot;
+  py::class_<BulkDensityLiquid>(m,"BulkDensityLiquid")
+      .def(py::init<Real*,Unit*>())
+      .def_property("value", &BulkDensityLiquid::get_data, &BulkDensityLiquid::set_data)
+      .def_property("unit", &BulkDensityLiquid::get_unit, &BulkDensityLiquid::set_unit);
 
-      // Strang first step
-      gm.timestep(dt_/2.0,{0.0,0.0});
-      pp.volume_expansion(dt_/2.0,&gm);
+  py::class_<BulkDensitySolid>(m,"BulkDensitySolid")
+      .def(py::init<Real*,Unit*>())
+      .def_property("value", &BulkDensitySolid::get_data, &BulkDensitySolid::set_data)
+      .def_property("unit", &BulkDensitySolid::get_unit, &BulkDensitySolid::set_unit);
 
-      // Strang second step
-      g_si += pp.timestep(dt_,&gm,&cnt,&si);
-      gm.timestep(dt_,{-g_si,0.0});
+  py::class_<MeltingPoint>(m,"MeltingPoint")
+      .def(py::init<Real*,Unit*>())
+      .def_property("value", &MeltingPoint::get_data, &MeltingPoint::set_data)
+      .def_property("unit", &MeltingPoint::get_unit, &MeltingPoint::set_unit);
 
-      // Strang third step
-      gm.timestep(dt_/2.0,{0.0,0.0});
-      pp.volume_expansion(dt_/2.0,&gm);
+  py::class_<Temperature>(m,"Temperature")
+      .def(py::init<Real*,Unit*>())
+      .def_property("value", &Temperature::get_data, &Temperature::set_data)
+      .def_property("unit", &Temperature::get_unit, &Temperature::set_unit);
 
-      *t.onData() += dt_;
+  py::class_<TemperatureTimeDerivative>(m,"TemperatureTimeDerivative")
+      .def(py::init<Real*,Unit*>())
+      .def_property("value", &TemperatureTimeDerivative::get_data, &TemperatureTimeDerivative::set_data)
+      .def_property("unit", &TemperatureTimeDerivative::get_unit, &TemperatureTimeDerivative::set_unit);
 
-      iter++;
-      if(counter_trigger(iter,PRINT_EVERY)) {
+  py::class_<Pressure>(m,"Pressure")
+      .def(py::init<Real*,Unit*>())
+      .def_property("value", &Pressure::get_data, &Pressure::set_data)
+      .def_property("unit", &Pressure::get_unit, &Pressure::set_unit);
 
-          clock.stop();
+  py::class_<PressureTimeDerivative>(m,"PressureTimeDerivative")
+      .def(py::init<Real*,Unit*>())
+      .def_property("value", &Pressure::get_data, &Pressure::set_data)
+      .def_property("unit", &Pressure::get_unit, &Pressure::set_unit);
 
-          std::cout << "Time: " << *t.onData() << '\t'				// time
-                    << "T: " << gm.get_T() << '\t'					// temperature
-                    << "S: " << gm.get_S(&si) << '\t'				// supersaturation (S)
-                    << "NR: " << cnt.nucleation_rate() << '\t'			// J
-                    << "n: " << gm.get_n() << '\t'					// ns
-                    << "SCD: " << cnt.stable_cluster_diameter() << '\t'		// j
-                    << "MPN: " << pp.get_mean_particles_number() << '\t'		// N_m
-                    << "MSL: " << pp.get_mean_sintering_level() << '\t'		//
-                    << "AMSD: " << pp.get_aggregates_mean_spherical_diameter() << '\t'
-                    << "AN: " << pp.get_aggregates_number() << '\t'
-                    << "AD: " << pp.get_aggregates_density() << '\t'
-                    << "V: " << pp.get_volume() << '\t'
-                    << "MFD: " << pp.get_mean_fractal_dimension() << '\t'
-                    << "CI: " << clock.interval()/PRINT_EVERY << std::endl;
+  py::class_<SingleComponentComposition>(m,"SingleComponentComposition")
+      .def(py::init<MolarFraction*,std::string>())
+      .def_readwrite("name", &SingleComponentComposition::name)
+      .def("list_relations",list_relations<SingleComponentComposition>)
+      .def("create_relation_to",create_relation_to<hasProperty,SingleComponentComposition,SurfaceTension>)
+      .def("create_relation_to",create_relation_to<hasProperty,SingleComponentComposition,SaturationPressure>)
+      .def("create_relation_to",create_relation_to<hasScalarProperty,SingleComponentComposition,Mass>)
+      .def("create_relation_to",create_relation_to<hasScalarProperty,SingleComponentComposition,BulkDensityLiquid>)
+      .def("create_relation_to",create_relation_to<hasScalarProperty,SingleComponentComposition,BulkDensitySolid>)
+      .def("create_relation_to",create_relation_to<hasScalarProperty,SingleComponentComposition,MeltingPoint>)
+      .def("create_relation_to",create_relation_to<hasScalarProperty,SingleComponentComposition,MolarFraction>)
+      .def("get_related_objects",get_related_objects<SingleComponentComposition,SurfaceTension>)
+      .def("get_related_objects",get_related_objects<SingleComponentComposition,SaturationPressure>)
+      .def("get_related_objects",get_related_objects<SingleComponentComposition,Mass>)
+      .def("get_related_objects",get_related_objects<SingleComponentComposition,BulkDensityLiquid>)
+      .def("get_related_objects",get_related_objects<SingleComponentComposition,BulkDensitySolid>)
+      .def("get_related_objects",get_related_objects<SingleComponentComposition,MeltingPoint>)
+      .def("get_related_objects",get_related_objects<SingleComponentComposition,MolarFraction>);
 
-          clock.start();
-      }
-      }
+  py::class_<GasMixture>(m,"GasMixture")
+      .def(py::init<>())
+      .def("list_relations",list_relations<GasMixture>)
+      .def("create_relation_to",create_relation_to<hasPart,GasMixture,SingleComponentComposition>)
+      .def("create_relation_to",create_relation_to<hasProperty,GasMixture,Time>)
+      .def("create_relation_to",create_relation_to<hasProperty,GasMixture,Temperature>)
+      .def("create_relation_to",create_relation_to<hasProperty,GasMixture,TemperatureTimeDerivative>)
+      .def("create_relation_to",create_relation_to<hasProperty,GasMixture,Pressure>)
+      .def("create_relation_to",create_relation_to<hasProperty,GasMixture,PressureTimeDerivative>)
+      .def("get_related_objects",get_related_objects<GasMixture,SingleComponentComposition>)
+      .def("get_related_objects",get_related_objects<GasMixture,Time>)
+      .def("get_related_objects",get_related_objects<GasMixture,Temperature>)
+      .def("get_related_objects",get_related_objects<GasMixture,TemperatureTimeDerivative>)
+      .def("get_related_objects",get_related_objects<GasMixture,Pressure>)
+      .def("get_related_objects",get_related_objects<GasMixture,PressureTimeDerivative>);
 
-*/
+  py::class_<MolarFraction>(m,"MolarFraction")
+      .def(py::init<Real*,Unit*>())
+      .def_property("value", &MolarFraction::get_data, &MolarFraction::set_data)
+      .def_property("unit", &MolarFraction::get_unit, &MolarFraction::set_unit);
 
-    // Moments loop
-    while ( *t.onData() <= 0.02) {
-      if ( gm.get_T() < 600.) {
-        *dTdt.onData() = 0.;
-      }
+  py::class_<SurfaceTensionPolynomialSoftwareModel>(m,"SurfaceTensionPolynomialSoftwareModel")
+      .def(py::init<>());
 
-      double g_cons = mom.timestep(*dt.onData());
+  py::class_<SurfaceTensionMaterialRelation>(m,"SurfaceTensionMaterialRelation")
+      .def(py::init<>())
+      .def("run",&SurfaceTensionMaterialRelation::run)
+      .def("create_relation_to",create_relation_to<hasSoftwareModel,SurfaceTensionMaterialRelation,SurfaceTensionPolynomialSoftwareModel>);
 
-      gm.timestep(*dt.onData(), {g_cons, 0.0});
+  py::class_<SurfaceTension>(m,"SurfaceTension")
+      .def(py::init<Real*,Unit*>())
+      .def_property("value", &SurfaceTension::get_data, &SurfaceTension::set_data)
+      .def_property("unit", &SurfaceTension::get_unit, &SurfaceTension::set_unit)
+      .def("create_relation_to",create_relation_to<hasMathematicalModel,SurfaceTension,SurfaceTensionMaterialRelation>)
+      .def("get_related_objects",get_related_objects<SurfaceTension,SurfaceTensionMaterialRelation>);
 
-      *t.onData() += *dt.onData();
-      iter += 1;
+  py::class_<SaturationPressurePolynomialSoftwareModel>(m,"SaturationPressurePolynomialSoftwareModel")
+      .def(py::init<>());
 
-      if (counter_trigger(iter, PRINT_EVERY)) {
+  py::class_<SaturationPressureMaterialRelation>(m,"SaturationPressureMaterialRelation")
+      .def(py::init<>())
+      .def("run",&SaturationPressureMaterialRelation::run)
+      .def("create_relation_to",create_relation_to<hasSoftwareModel,SaturationPressureMaterialRelation,SaturationPressurePolynomialSoftwareModel>);
 
-          auto spec_name = si.name;
-          std::cout
-              << "Time= "<< *t.onData() << '\t'
-              << "Temp= " << gm.get_T() << '\t'
-              << "Sat_" << spec_name << "= " << gm.get_S(&si) << '\t'
-              << spec_name << "_cons= " << g_cons << '\t'
-              << "Mean Diam_" << spec_name << "= " << mom.get_mean_diameter() << '\t'
-              << "M0_" << spec_name << "= " << mom.get_n_density() << '\t'
-              << "M1_" << spec_name << "= " << mom.get_M1() << '\t'
-              << "M2_" << spec_name << "= " << mom.get_M2() << '\t'
-              << std::endl << std::endl;
-      }
-    }
+  py::class_<SaturationPressure>(m,"SaturationPressure")
+      .def(py::init<Real*,Unit*>())
+      .def_property("value", &SaturationPressure::get_data, &SaturationPressure::set_data)
+      .def_property("unit", &SaturationPressure::get_unit, &SaturationPressure::set_unit)
+      .def("create_relation_to",create_relation_to<hasMathematicalModel,SaturationPressure,SaturationPressureMaterialRelation>)
+      .def("get_related_objects",get_related_objects<SaturationPressure,SaturationPressureMaterialRelation>);
 
-    gm.print();
+  py::class_<GasModel>(m,"GasModel")
+      .def(py::init<>())
+      .def("list_relations",list_relations<GasModel>)
+      .def("create_relation_to",create_relation_to<hasModel,GasModel,GasMixture>)
+      .def("get_related_objects",get_related_objects<GasModel,GasMixture>)
+      .def("get_gas_flux",&GasModel::get_gas_flux)
+      .def("get_n",&GasModel::get_n)
+      .def("timestep",&GasModel::timestep)
+      .def("print",&GasModel::print);
 
-    clock.stop();
-    std::cout << "Execution time: " << clock.interval() << " s" << std::endl;
+  py::class_<ClassicalNucleationTheory>(m,"ClassicalNucleationTheory")
+      .def(py::init<>())
+      .def("list_relations",list_relations<ClassicalNucleationTheory>)
+      .def("create_relation_to",create_relation_to<hasModel,ClassicalNucleationTheory,SingleComponentComposition>)
+      .def("get_related_objects",get_related_objects<ClassicalNucleationTheory,SingleComponentComposition>)
+      .def("stable_cluster_diameter",&ClassicalNucleationTheory::stable_cluster_diameter)
+      .def("nucleation_rate",&ClassicalNucleationTheory::nucleation_rate);
 
-    return 0;
+  py::class_<MomentModelPratsinis>(m,"MomentModelPratsinis")
+      .def(py::init<>())
+      .def("list_relations",list_relations<MomentModelPratsinis>)
+      .def("timestep",&MomentModelPratsinis::timestep)
+      .def("get_mean_diameter",&MomentModelPratsinis::get_mean_diameter)
+      .def("get_n_density",&MomentModelPratsinis::get_n_density)
+      .def("print_lognormal_val",&MomentModelPratsinis::print_lognormal_val)
+      .def("create_relation_to",create_relation_to<hasModel,MomentModelPratsinis,SingleComponentComposition>)
+      .def("get_related_objects",get_related_objects<MomentModelPratsinis,SingleComponentComposition>);
+
+  py::class_<PBMFractalParticlePhase<PBMAggregate<Particle>>>(m,"PBMFractalParticlePhase")
+      .def(py::init<double,double>(), py::arg("D_f")=1.61, py::arg("volume")=5.0e-16)
+      .def("timestep",&PBMFractalParticlePhase<PBMAggregate<Particle>>::timestep)
+      .def("create_relation_to",create_relation_to<hasModel,PBMFractalParticlePhase<PBMAggregate<Particle>>,SingleComponentComposition>)
+      .def("calc_dt",&PBMFractalParticlePhase<PBMAggregate<Particle>>::calc_dt)
+      .def("get_volume",&PBMFractalParticlePhase<PBMAggregate<Particle>>::get_volume)
+      .def("get_aggregates_mean_spherical_diameter",&PBMFractalParticlePhase<PBMAggregate<Particle>>::get_aggregates_mean_spherical_diameter)
+      .def("get_mean_particles_number",&PBMFractalParticlePhase<PBMAggregate<Particle>>::get_mean_particles_number)
+      .def("get_particles_mean_diameter",&PBMFractalParticlePhase<PBMAggregate<Particle>>::get_particles_mean_diameter)
+      .def("get_particles_sizes",&PBMFractalParticlePhase<PBMAggregate<Particle>>::get_particles_sizes)
+      .def("get_aggregates_sizes",&PBMFractalParticlePhase<PBMAggregate<Particle>>::get_aggregates_sizes)
+      .def("get_aggregates_number",&PBMFractalParticlePhase<PBMAggregate<Particle>>::get_aggregates_number)
+      .def("get_aggregates_density",&PBMFractalParticlePhase<PBMAggregate<Particle>>::get_aggregates_density)
+      .def("get_mean_sintering_level",&PBMFractalParticlePhase<PBMAggregate<Particle>>::get_mean_sintering_level)
+      .def("get_mean_fractal_dimension",&PBMFractalParticlePhase<PBMAggregate<Particle>>::get_mean_fractal_dimension)
+      .def("volume_expansion",&PBMFractalParticlePhase<PBMAggregate<Particle>>::volume_expansion)
+      .def("get_related_objects",get_related_objects<PBMFractalParticlePhase<PBMAggregate<Particle>>,SingleComponentComposition>);
+
+  py::class_<ConstrainedLangevinParticlePhase<RATTLEAggregate<DynamicParticle>>>(m,"ConstrainedLangevinParticlePhase")
+      .def(py::init<double>(), py::arg("Vol")=5e-19)
+      .def("timestep",&ConstrainedLangevinParticlePhase<RATTLEAggregate<DynamicParticle>>::timestep)
+      .def("get_volume",&ConstrainedLangevinParticlePhase<RATTLEAggregate<DynamicParticle>>::get_volume)
+      .def("create_relation_to",create_relation_to<hasModel,ConstrainedLangevinParticlePhase<RATTLEAggregate<DynamicParticle>>,SingleComponentComposition>)
+      .def("get_aggregates_mean_spherical_diameter",&ConstrainedLangevinParticlePhase<RATTLEAggregate<DynamicParticle>>::get_aggregates_mean_spherical_diameter)
+      .def("get_mean_particles_number",&ConstrainedLangevinParticlePhase<RATTLEAggregate<DynamicParticle>>::get_mean_particles_number)
+      .def("get_particles_sizes",&ConstrainedLangevinParticlePhase<RATTLEAggregate<DynamicParticle>>::get_particles_sizes)
+      .def("get_particles_mean_diameter",&ConstrainedLangevinParticlePhase<RATTLEAggregate<DynamicParticle>>::get_particles_mean_diameter)
+      .def("get_aggregates_number",&ConstrainedLangevinParticlePhase<RATTLEAggregate<DynamicParticle>>::get_aggregates_number)
+      .def("get_aggregates_sizes",&ConstrainedLangevinParticlePhase<RATTLEAggregate<DynamicParticle>>::get_aggregates_sizes)
+      .def("get_aggregates_density",&ConstrainedLangevinParticlePhase<RATTLEAggregate<DynamicParticle>>::get_aggregates_density)
+      .def("get_mean_sintering_level",&ConstrainedLangevinParticlePhase<RATTLEAggregate<DynamicParticle>>::get_mean_sintering_level)
+      .def("get_mean_fractal_dimension",&ConstrainedLangevinParticlePhase<RATTLEAggregate<DynamicParticle>>::get_mean_fractal_dimension)
+      .def("get_related_objects",get_related_objects<ConstrainedLangevinParticlePhase<RATTLEAggregate<DynamicParticle>>,SingleComponentComposition>)
+      .def("volume_expansion",&ConstrainedLangevinParticlePhase<RATTLEAggregate<DynamicParticle>>::volume_expansion)
+      .def("get_particles_smallest_diameter",&ConstrainedLangevinParticlePhase<RATTLEAggregate<DynamicParticle>>::get_particles_smallest_diameter);
+
+  py::class_<nanoCell>(m,"nanoCell")
+      .def(py::init<std::vector<SingleComponentComposition>, double, double, std::valarray<double>>());
+
+  py::class_<nanoNetwork>(m,"nanoNetwork")
+      .def(py::init<std::vector<std::shared_ptr<nanoCell>>>())
+      .def("print_cells",&nanoNetwork::print_cells)
+      .def("get_t",&nanoNetwork::get_t)
+      .def("get_dt",&nanoNetwork::get_dt)
+      .def("get_cell_particles_diameters",&nanoNetwork::get_cell_particles_diameters)
+      .def("get_cell_aggregates_diameters",&nanoNetwork::get_cell_aggregates_diameters)
+      .def("get_cell_mean_fractal_dimension",&nanoNetwork::get_cell_mean_fractal_dimension)
+      .def("get_cell_pbm_volume",&nanoNetwork::get_cell_pbm_volume)
+      .def("timestep",&nanoNetwork::timestep);
+
 }

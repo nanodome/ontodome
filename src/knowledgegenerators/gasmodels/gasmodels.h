@@ -32,6 +32,7 @@ class GasModels  : public SoftwareModel {
 protected:
 
     std::valarray<double*> w; ///< Species molar fractions.
+    std::valarray<double> c; ///< Species molar fractions for reactor network.
     std::map<std::string,std::size_t> hash; ///< Hash map for name-to-index resolution.
     bool init = false; ///< Boolean value which stores whether the model is initialized or not.
 
@@ -60,6 +61,9 @@ public:
 
     /// Get the pressure [pa].
     virtual double get_p() = 0;
+
+    /// Get the nanonetwork molar fractions [#].
+    virtual std::valarray<double> get_c() = 0;
 
     /// Get gas phase molecules average viscosity [Pa s].
     virtual double get_average_viscosity() = 0;
@@ -91,7 +95,7 @@ public:
       // Update specie's saturation pressure
       spec->template getRelatedObjects<SaturationPressure>()[0]->template getRelatedObjects<SaturationPressureMaterialRelation>()[0]->run();
 
-      return *spec->template getRelatedObjects<SaturationPressure>()[0]->template onData() /(K_BOL*get_T());
+      return *spec->template getRelatedObjects<SaturationPressure>()[0]->value /(K_BOL*get_T());
     };
 
     /// Get the gas phase mass density [kg/m3].
@@ -108,6 +112,12 @@ public:
 
     /// Prints the gas phase most relevant properties.
     virtual void print() = 0;
+
+    /// Updates gas phase pressure, temperature and molar fractions
+    /// \param p pressure [Pa]
+    /// \param T temperature [K]
+    /// \param c valarray with molar fraction of each species ordered as _species
+    virtual void update(double p, double T, std::valarray<double> c) =0;
 
 };
 

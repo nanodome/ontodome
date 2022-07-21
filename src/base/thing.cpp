@@ -1,5 +1,27 @@
 #include "thing.h"
 
+// internal tools
+template <typename T>
+bool contains(std::vector<T> vec, const T & elem)
+{
+    return any_of(vec.begin(), vec.end(), [&](const auto & x){
+        return x == elem;
+    });
+}
+
+// sources
+std::vector<Thing *> Thing::ListRelations() {
+  std::vector<Thing *> res;
+    for (auto x : this->relations) {
+        if (x->getRange()->getUuid() != this->getUuid()) {
+            res.push_back(x->getRange());
+        } else {
+            res.push_back(x->getDomain());
+        }
+    }
+   return res;
+}
+
 void Thing::addRelation(Relation* t) {
   if (std::find(relations.begin(), relations.end(), t) == relations.end()) {
   relations.push_back(t);
@@ -112,7 +134,7 @@ T* Thing::findNearest() {
   auto* start = this; // the starting object will always be the objects from which the method is called
   T* result = nullptr;
   std::vector<boost::uuids::uuid> scanned; // list of scanned objects by means of UUID
-  adder(&scanned,start->getUuid()); // add start to scanned items in order to avoid looping
+  adder(&scanned,start->getUuid()); // add start to scanned items to avoid looping
 
   // scan for object of type T in start object relations
   for (auto i : start->relations) {
@@ -178,23 +200,9 @@ std::vector<T*> Thing::getRelatedObjects() {
 
    for(auto i: relations) {
       if(T* r0 = dynamic_cast<T*>(avoider(this,i))) {
-        objs.push_back(r0);
-      }
-   }
-
-   return objs;
-}
-
-template<class T>
-std::vector<T*> Thing::getLabeledRelatedObjects(std::string _lab) {
-   std::vector<T*> objs;
-
-   for (auto i: relations) {
-      if (T* r0 = dynamic_cast<T*>(avoider(this,i))) {
-        if ( r0->label == _lab) {
+        if (!contains(objs, r0)) {
           objs.push_back(r0);
         }
-        else { abort(); }
       }
    }
 

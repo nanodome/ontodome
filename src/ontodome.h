@@ -38,6 +38,6 @@
 #include "knowledgegenerators/nanomodels/particles/PBM/pbmdlcaparticlephase.h"
 #include "knowledgegenerators/nanomodels/particles/PBM/pbmbccaparticlephase.h"
 #include "knowledgegenerators/nanomodels/particles/CGMD/constrainedlangevinparticlephase.h"
-//#include "knowledgegenerators/nanomodels/particles/CGMD/rigidbodylangevinparticlephase.h"
+#include "knowledgegenerators/nanomodels/nanonetwork.h"
 
 #endif // ONTODOME

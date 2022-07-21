@@ -50,7 +50,7 @@ public:
     virtual double get_M0() = 0;
     virtual double get_M1() = 0;
     virtual double get_M2() = 0;
-    virtual void get_lognormal_val(const std::string& path) = 0;
+    virtual void print_lognormal_val(const std::string path) = 0;
     virtual void get_lognormal_val(int _s_index) = 0;
 
 };

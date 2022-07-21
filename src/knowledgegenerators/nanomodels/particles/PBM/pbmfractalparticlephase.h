@@ -43,11 +43,21 @@ public:
           // THIS IS THE DEFAULT. THE USER CAN CHANGE THESE VALUES AFTER THE CLASS INSTANTION
           this->set_max_aggregates(2000);
           this->set_min_aggregates(1990);
+
+          volume = this->get_volume();
         }
+
+    double volume; ///<control volume size
+
+    double get_aggregates_number(){
+      return this->aggregates.size();
+    }
+
+    void move_aggregates(double dt, double vel, PBMFractalParticlePhase<A> *dest );
 
 private:
 
-    double nucleation(double j, SingleComponentComposition* s);
+    double nucleation(double j);
 
     void initialize () {
       nt = this-> template findNearest<NucleationTheory>();
@@ -58,18 +68,67 @@ private:
 };
 
 template<typename A>
-double PBMFractalParticlePhase<A>::nucleation(double j, SingleComponentComposition* s) {
+double PBMFractalParticlePhase<A>::nucleation(double j) {
 
         // Initialize the model if not done before
         if (init == false) { initialize(); }
 
         // create a new aggregate
-        std::shared_ptr<Particle> p0(new Particle(j,s,nt));
+        std::shared_ptr<Particle> p0(new Particle(j,this->sp,nt));
         std::shared_ptr<A> a0(new A(D_f,p0));
 
         this->aggregates.push_back(a0);
 
         return j/this->volume;
+}
+
+template<typename A>
+void PBMFractalParticlePhase<A>::move_aggregates(double dt, double vel, PBMFractalParticlePhase<A> *dest ) {
+
+  double total_mass = 0.;
+  for (auto i : this->aggregates) {
+    total_mass += i->get_mass();
+  }
+
+  double mass_flux = vel * this->get_volume() * this->get_aggregates_density() * total_mass * dt; //kg
+  double flux_mass = 0.; //kg
+
+//  int rem = 0;
+
+  while ( (flux_mass < mass_flux) && (this->aggregates.size() > this->min_aggregates_number) ) {
+
+    int N = this->aggregates.size();
+
+    auto it = this->aggregates.begin();
+    double rho = ndm::uniform_double_distr(ndm::rand_gen);
+    int idx = int(rho*(N-1));
+
+    std::shared_ptr<A> sel_agg = this->get_aggregate(idx);
+
+    flux_mass += sel_agg->get_mass();
+
+    // Copy the aggregate in the given PBM object if is not a nullptr
+    if (dest != nullptr) {
+      dest->aggregates.push_back(sel_agg);
+      int Nd = dest->aggregates.size();
+      dest->volume *= (Nd+1.0)/Nd;
+    }
+
+    std::advance(it,idx);
+
+    this->aggregates.erase(it);
+
+    this->volume *= (N-1.0)/N;
+
+//    rem++;
+
+  }
+
+//    std::cout << flux_mass << " of " << mass_flux << " removed." << std::endl;
+//    std::cout << rem << " aggregates moved." << std::endl;
+
+  this->aggregates_number_balance();
+
 }
 
 #endif // PBMFRACTALPARTICLEPHASE_H
