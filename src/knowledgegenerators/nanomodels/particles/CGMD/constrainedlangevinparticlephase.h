@@ -253,6 +253,9 @@ double ConstrainedLangevinParticlePhase<A>::timestep(double dt) {
   // Check Coalescence and applies shake after sintering
   rearrange_aggregate();
 
+  // Keeps constant the number of aggregates
+  this->aggregates_number_balance();
+
   // Update volume from gas phase data
   this->volume_expansion(dt);
 
