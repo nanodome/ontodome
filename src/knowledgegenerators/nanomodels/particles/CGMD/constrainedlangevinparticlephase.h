@@ -731,7 +731,7 @@ void ConstrainedLangevinParticlePhase<A>::aggregates_number_balance() {
     this->volume *= (N - 1.0) / N;
   }
 
-  if (N < this->min_aggregates_number) {
+  if (N < this->min_aggregates_number && N > 0 ) {
 
     while (N != this->max_aggregates_number) {
 
@@ -834,8 +834,6 @@ void ConstrainedLangevinParticlePhase<A>::aggregates_number_balance() {
     }
 
   }
-
-
 
 }
 

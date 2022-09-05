@@ -120,7 +120,14 @@ public:
     }
 
     /// Updates gas' state
-    void update(double _p, double _T, std::valarray<double> _c) { p->set_data(_p); T->set_data(_T); c = _c; }
+    void update(double _p, double _T, std::valarray<double> _c) {
+      // Initialize the model if not done before
+      if (init == false) { initialize(); }
+
+      p->set_data(_p);
+      T->set_data(_T);
+      c = _c;
+    }
 
     /// Get the expansion coefficient [1/s].
     double get_gamma() {

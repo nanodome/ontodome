@@ -8,12 +8,12 @@ namespace py = pybind11;
 
 
 /// Internal tools
-nanoNetwork create_network(std::vector<SingleComponentComposition> specs, std::vector<double> pp, std::vector<double> TT, std::vector<std::valarray<double>> cs) {
+nanoNetwork create_network(std::vector<std::string> specs, std::vector<double> pp, std::vector<double> TT, std::vector<std::valarray<double>> cs, double mass, double bulk_l) {
 
-  std::vector<std::shared_ptr<nanoCell>> cells;
+  std::vector<nanoCell*> cells;
 
   for (int k=0; k < int(cs.size()); k++) {
-    cells.push_back(std::shared_ptr<nanoCell>(new nanoCell(specs, pp[k], TT[k], cs[k])));
+    cells.push_back(new nanoCell(specs, pp[k], TT[k], cs[k], mass, bulk_l));
   }
 
   nanoNetwork net(cells);
@@ -236,10 +236,11 @@ PYBIND11_MODULE(libontodome, m) {
       .def("get_particles_smallest_diameter",&ConstrainedLangevinParticlePhase<RATTLEAggregate<DynamicParticle>>::get_particles_smallest_diameter);
 
   py::class_<nanoCell>(m,"nanoCell")
-      .def(py::init<std::vector<SingleComponentComposition>, double, double, std::valarray<double>>());
+      .def(py::init<std::vector<std::string>, double, double, std::valarray<double>, double, double>())
+      .def("print_aggregates_number",&nanoCell::print_aggregates_number);
 
   py::class_<nanoNetwork>(m,"nanoNetwork")
-      .def(py::init<std::vector<std::shared_ptr<nanoCell>>>())
+      .def(py::init<std::vector<nanoCell*>>())
       .def("print_cells",&nanoNetwork::print_cells)
       .def("get_t",&nanoNetwork::get_t)
       .def("get_dt",&nanoNetwork::get_dt)

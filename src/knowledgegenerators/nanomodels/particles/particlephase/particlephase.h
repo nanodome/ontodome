@@ -140,6 +140,9 @@ protected:
 template<typename A>
 void ParticlePhase<A>::volume_expansion(double dt) {
 
+        // Initialize the model if not done before
+        if (init == false) { initialize(); }
+
         volume *= exp(gp->get_gamma()*dt);
 }
 

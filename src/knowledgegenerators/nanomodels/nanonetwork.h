@@ -11,31 +11,93 @@ class nanoCell : public SoftwareModel {
     double t = 0.;
 
  public:
+    /// variables
+    Time* tt;
+    Pressure* p;
+    PressureTimeDerivative* dpdt;
+    Temperature* T;
+    TemperatureTimeDerivative* dTdt;
+    Mass* ms;
+    BulkDensityLiquid* bl;
+    SaturationPressure* satp;
+    SurfaceTension* sten;
+    SaturationPressureMaterialRelation* satpm;
+    SurfaceTensionMaterialRelation* stenm;
+    SaturationPressurePolynomialSoftwareModel* satpp;
+    SurfaceTensionPolynomialSoftwareModel* stenp;
+
     /// methods
-    PBMFractalParticlePhase<PBMAggregate<Particle>>* pbm;
     NucleationTheory* nt;
     GasModels* gp;
+    GasMixture* gm;
+    PBMFractalParticlePhase<PBMAggregate<Particle>>* pbm;
 
     /// Species container
-    std::vector<SingleComponentComposition> specs;
+    std::vector<SingleComponentComposition*> specs;
 
     /// Constructor
-    nanoCell(std::vector<SingleComponentComposition> species, double p, double T, std::valarray<double> c) {
+    nanoCell(std::vector<std::string> species, double pp, double TT, std::valarray<double> c, double mass, double bulk_l) {
 
       // Get all the required inputs
-      nt = findNearest<NucleationTheory>();
-      gp = findNearest<GasModels>();
-      pbm = findNearest<PBMFractalParticlePhase<PBMAggregate<Particle>>>();
+      tt = new Time(new Real(0.), new Unit("s"));
+      p = new Pressure(new Real(pp), new Unit("Pa"));
+      dpdt = new PressureTimeDerivative(new Real(0.), new Unit("Pa/s"));
+      T = new Temperature(new Real(TT), new Unit("K"));
+      dTdt = new TemperatureTimeDerivative(new Real(0.), new Unit("K/s"));
 
       // initialize the species container
-      specs = species;
+      gm = new GasMixture();
+      gm->createRelationTo<hasProperty,Time>(tt);
+      gm->createRelationTo<hasProperty,Pressure>(p),
+      gm->createRelationTo<hasProperty,PressureTimeDerivative>(dpdt);
+      gm->createRelationTo<hasProperty,Temperature>(T);
+      gm->createRelationTo<hasProperty,TemperatureTimeDerivative>(dTdt);
+
+      int ii = 0;
+      for (auto i : species) {
+          specs.push_back(new SingleComponentComposition(new MolarFraction(new Real(c[ii]), new Unit("#")),i));
+          gm->createRelationTo<hasPart,SingleComponentComposition>(specs[ii]);
+          ii += 1;
+      }
+
+      ms = new Mass(new Real(mass), new Unit("kg"));
+      bl = new BulkDensityLiquid(new Real(bulk_l), new Unit("kg/m3"));
+      specs[0]->createRelationTo<hasProperty,Mass>(ms);
+      specs[0]->createRelationTo<hasProperty,BulkDensityLiquid>(bl);
+
+      gp = new GasModel();
+      gm->createRelationTo<hasModel,GasModels>(gp);
+
+      stenp = new SurfaceTensionPolynomialSoftwareModel();
+      satpp = new SaturationPressurePolynomialSoftwareModel();
+
+      stenm = new SurfaceTensionMaterialRelation();
+      stenm->createRelationTo<hasSoftwareModel,SurfaceTensionPolynomialSoftwareModel>(stenp);
+      satpm = new SaturationPressureMaterialRelation();
+      satpm->createRelationTo<hasSoftwareModel,SaturationPressurePolynomialSoftwareModel>(satpp);
+
+      sten = new SurfaceTension(new Real(0.), new Unit("N/m"));
+      sten->createRelationTo<hasModel,SurfaceTensionMaterialRelation>(stenm);
+      specs[0]->createRelationTo<hasProperty,SurfaceTension>(sten);
+      satp = new SaturationPressure(new Real(0.), new Unit("Pa"));
+      specs[0]->createRelationTo<hasProperty,SaturationPressure>(satp);
+      satp->createRelationTo<hasModel,SaturationPressureMaterialRelation>(satpm);
+
+      nt = new ClassicalNucleationTheory();
+      specs[0]->createRelationTo<hasModel,NucleationTheory>(nt);
+
+      stenm->run();
+      satpm->run();
+
+      pbm = new PBMFractalParticlePhase<PBMAggregate<Particle>>(1.6,pow(1e-4,3));
+      specs[0]->createRelationTo<hasModel,PBMFractalParticlePhase<PBMAggregate<Particle>>>(pbm);
 
       // Set the methods for each cell
       pbm->set_max_aggregates(500);
       pbm->set_min_aggregates(50);
 
       // Update the gas phase
-      this->gp->update(p,T,c);
+      this->gp->update(pp,TT,c);
     }
 
     int print_aggregates_number();
@@ -50,7 +112,7 @@ class nanoNetwork {
     int n_cells;
 
     /// methods containers for cells
-    std::vector<std::shared_ptr<nanoCell>> cells;
+    std::vector<nanoCell*> cells;
 
     /// Network simulation time [s]
     double t = 0.;
@@ -61,7 +123,7 @@ class nanoNetwork {
   public:
 
     /// Constructor
-    nanoNetwork(std::vector<std::shared_ptr<nanoCell>> _cells){
+    nanoNetwork(std::vector<nanoCell*> _cells){
       // set the number of cells
       n_cells = _cells.size();
       cells = _cells;
