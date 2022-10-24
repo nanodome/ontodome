@@ -126,6 +126,9 @@ private:
 template<typename A>
 double PBMParticlePhase<A>::get_total_processes_rate() {
 
+    // Initialize the model if not done before
+    if (this->init == false) { this->initialize(); }
+
     // setting the simulation parameters with default values
     dt_max = 1e-8; // [s]
     //max_aggregates_number = 2000;

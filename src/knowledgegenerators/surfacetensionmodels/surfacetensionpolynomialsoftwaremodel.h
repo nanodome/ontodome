@@ -82,7 +82,8 @@ public:
       else if (_name == "Ag") {
         return {0.894,-0.000191,1234.96};
       }
-      else { abort(); }
+      else { std::cout << "Species " << _name << " not found!" << std::endl;
+          abort(); }
     }
 
 };
