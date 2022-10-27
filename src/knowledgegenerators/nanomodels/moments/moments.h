@@ -28,14 +28,7 @@
 class MomentsModel : public SoftwareModel {
 
 public:
-    MomentsModel() {
-//      // List of compatible entities
-//      createRelationTo<isModelFor,Thing>(new HomonuclearMolecule);
-//      createRelationTo<isModelFor,Thing>(new HeteronuclearMolecule);
-
-//      // List of required models
-//      createRelationTo<requiresModelFor,Thing>(new GasMixture);
-    };
+    MomentsModel() {};
 
     std::string getClassName() const { return "Moment Models Container"; }
 

@@ -21,7 +21,7 @@ nanoNetwork create_network(std::vector<std::string> specs, std::vector<double> p
   return net;
 }
 
-/// Trampoline methods. Avoid PyBind11 static cast.
+/// Trampoline methods. Avoids PyBind11 static cast.
 template <class R, class O1, class O2>
 void create_relation_to(O1* o1, O2* o2) {
   o1->template createRelationTo<R, O2>(o2);

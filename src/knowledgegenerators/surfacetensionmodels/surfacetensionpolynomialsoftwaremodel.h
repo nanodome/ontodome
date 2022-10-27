@@ -74,7 +74,7 @@ public:
         return {1.334,-0.000256,1357.77};
       }
       else if (_name == "Al") {
-        return {0.,0.,0.};
+        return {0.88,-0.000128,933.};
       }
       else if (_name == "He") {
         return {0.,0.,0.};

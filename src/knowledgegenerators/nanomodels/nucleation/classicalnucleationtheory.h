@@ -65,6 +65,7 @@ protected:
 
       // Mark the object as initialized
       init = true;
+
     }
 
 public:

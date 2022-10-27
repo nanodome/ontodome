@@ -57,20 +57,20 @@ protected:
       T = gp->findNearest<Temperature>();
       dTdt = gp->findNearest<TemperatureTimeDerivative>();
 
-      // Get the species molar fractions
+      // Get the species molar fractions and Populate the hash map for name to index resolution
       if (!specs.empty())
       {
           w.resize(specs.size());
           for (std::size_t i = 0; i < specs.size(); ++i)
           {
             w[i] = specs[i]->mol->get_data();
+            hash[specs[i]->name] = i;
           }
       }
-      else { abort(); }
-
-      // Populate the hash map for name to index resolution
-      for(size_t i=0; i<specs.size(); ++i)
-          hash[specs[i]->name] = i;
+      else
+      {
+        abort();
+      }
 
       // Mark the model as initialized
       init = true;
@@ -88,7 +88,10 @@ public:
       // A 1% excess is tolerated
       double w_sum = 0;
       for (std::size_t i = 0; i < w.size(); ++i) { w_sum += *w[i]; }
-      if (w_sum >= 1.*1.01) { abort(); }
+      if (w_sum >= 1.*1.01) {
+          std::cout << "Sum of species molar frations greater than 1.0. Aborting." << std::endl;
+          abort();
+      }
 
       // Check if consumption vector and available species number matches
       // If not, the code must abort
@@ -103,11 +106,18 @@ public:
 
       gamma = w_cons_tot/n + *dTdt->get_data() / *T->get_data() - *dpdt->get_data() / *p->get_data();
 
+      // if (w_cons_tot != 0) {
+      //   std::cout << w_cons_tot << std::endl;
+      //   // abort();
+      // }
+
       // simple explicit ODE timestep
       // equation is solved for the number density
       for (std::size_t i = 0; i < w_cons.size(); ++i) {
           ns[i] += (w_cons[i] - ns[i] * gamma) * dt; // Volume contraction
-          if (ns[i] < 0) { abort(); }
+          if (ns[i] < 0) {
+            ns[i] = 0;
+          }
       }
 
       // gas phase pressure and temperature update
@@ -117,6 +127,15 @@ public:
       // molar fractions update
       n = get_n();
       for (std::size_t i = 0; i < w.size(); ++i) { *w[i] = ns[i] / n; }
+    }
+
+    /// Update c composition for reactor network
+    void c_update() {
+      for (std::size_t i = 0; i < w.size(); ++i) {
+        c[i] = *w[i];
+        // std::cout << c[i] << '\t';
+      }
+      // std::cout << std::endl;
     }
 
     /// Updates gas' state

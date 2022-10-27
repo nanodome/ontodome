@@ -206,7 +206,7 @@ void PBMParticlePhase<A>::coagulation() {
 
     // choose two aggregates a0!=a1
     std::shared_ptr<A> a0,a1;
-    do { aggregates_selection(a0,a1); } while (a0==a1);
+    do { aggregates_selection(a0,a1); } while (a0==a1 || a0==nullptr || a1==nullptr);
 
     // calculate kernels
     double m0 = a0->get_mass();
@@ -232,6 +232,9 @@ void PBMParticlePhase<A>::coagulation() {
 
 template<typename A>
 void PBMParticlePhase<A>::update_rates(GasModels* gp, NucleationTheory* nt) {
+
+    // Initialize the model if not done before
+    if (this->init == false) { this->initialize(); }
 
     // nucleating species concentration and temperature
     double T  = gp->get_T();
@@ -421,7 +424,7 @@ void PBMParticlePhase<A>::aggregates_number_balance() {
         this->volume *= (N-1.0)/N;
     }
 
-    if(N==min_aggregates_number) {
+    if (N < min_aggregates_number && N > 0 ) {
 
         while(N!=max_aggregates_number) {
 

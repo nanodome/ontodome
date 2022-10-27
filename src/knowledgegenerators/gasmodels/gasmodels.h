@@ -38,10 +38,7 @@ protected:
 
 public:
 
-    GasModels()
-    {
-//      createRelationTo<hasModel,GasMixture>(new GasMixture);
-    }
+    GasModels() {}
 
     std::string getClassName() const { return "Gas Continuum Models Container"; }
 
@@ -117,7 +114,10 @@ public:
     /// \param p pressure [Pa]
     /// \param T temperature [K]
     /// \param c valarray with molar fraction of each species ordered as _species
-    virtual void update(double p, double T, std::valarray<double> c) =0;
+    virtual void update(double p, double T, std::valarray<double> c) = 0;
+
+    /// Updates gas phase molar fractions for reactor network
+    virtual void c_update() = 0;
 
 };
 

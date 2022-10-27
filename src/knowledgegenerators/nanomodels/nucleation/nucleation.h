@@ -28,14 +28,7 @@
 class NucleationTheory : public SoftwareModel {
 
 public:
-    NucleationTheory() {
-//      // List of compatible entities
-//      createRelationTo<isModelFor,Thing>(new HomonuclearMolecule);
-//      createRelationTo<isModelFor,Thing>(new HeteronuclearMolecule);
-
-//      // List of required models
-//      createRelationTo<requiresModelFor,Thing>(new GasMixture);
-    };
+    NucleationTheory() {};
 
     std::string getClassName() const { return "Nucleation Theory Models Container"; }
 

@@ -1,0 +1,4 @@
+src/test_main.cpp
+.vscode/
+.qmake.stash
+*.user

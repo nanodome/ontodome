@@ -531,9 +531,9 @@ public:
     std::string getClassName() const { return "TemperatureTimeDerivative"; }
 };
 
-class MeltingPoint : public Temperature {
+class MeltingPoint : public DerivedQuantity {
 public:
-    MeltingPoint(Real* _s, Unit* _u) : Temperature(_s,_u) {}
+    MeltingPoint(Real* _s, Unit* _u) : DerivedQuantity(_s,_u) {}
 
     std::string getClassName() const { return "MeltingPoint"; }
 };

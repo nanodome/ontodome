@@ -1,5 +1,6 @@
 TEMPLATE = lib
 #TEMPLATE = app
+
 CONFIG += console c++14
 CONFIG -= dynamiclib
 #CONFIG -= app_bundle
@@ -7,8 +8,6 @@ CONFIG -= qt
 
 QMAKE_CXXFLAGS += -std=c++14 -O2 -Wall -shared -fopenmp
 QMAKE_LFLAGS += -fopenmp
-QMAKE_CXXFLAGS+=-pg
-QMAKE_LFLAGS+=-pg
 LIBS += -lstdc++fs  -static-libstdc++
 
 INCLUDEPATH = "/usr/include/python3.9"

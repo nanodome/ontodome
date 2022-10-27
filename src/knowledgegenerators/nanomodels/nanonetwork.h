@@ -194,6 +194,9 @@ std::valarray<double> nanoCell::advance(double dt, double p, double T, std::vala
   gp->timestep(dt/2.0,cons);
   pbm->volume_expansion(dt/2.0);
 
+  // Update molar fractions
+  gp->c_update();
+
   return(gp->get_c());
 }
 
