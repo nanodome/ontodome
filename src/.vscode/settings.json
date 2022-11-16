@@ -4,5 +4,6 @@
         "valarray": "cpp",
         "iostream": "cpp",
         "ostream": "cpp"
-    }
+    },
+    "task.allowAutomaticTasks": "on"
 }

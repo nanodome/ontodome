@@ -10,11 +10,12 @@ QMAKE_CXXFLAGS += -std=c++14 -O2 -Wall -shared -fopenmp
 QMAKE_LFLAGS += -fopenmp
 LIBS += -lstdc++fs  -static-libstdc++
 
-INCLUDEPATH = "/usr/include/python3.9"
+INCLUDEPATH = "/usr/include/python3.10"
+#INCLUDEPATH = "/usr/include/python3.9"
 
 SOURCES += \
     src/knowledgegenerators/nanomodels/particles/utilities/tinyxml2/tinyxml2.cpp \
-    src/main.cpp \
+    src/lib_main.cpp \
     #Tools and basic sources
     src/base/relation.cpp \
     src/base/thing.cpp \

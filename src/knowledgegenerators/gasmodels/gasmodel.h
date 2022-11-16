@@ -85,12 +85,13 @@ public:
       if (init == false) { initialize(); }
 
       // Check if molar fraction vector total sum is smaller than 1 for consistency
-      // A 1% excess is tolerated
+      // and re-normalize.
       double w_sum = 0;
       for (std::size_t i = 0; i < w.size(); ++i) { w_sum += *w[i]; }
-      if (w_sum >= 1.*1.01) {
-          std::cout << "Sum of species molar frations greater than 1.0. Aborting." << std::endl;
-          abort();
+      if (w_sum >= 1.) {
+          // std::cout << "Sum of species molar fractions greater than 1.0. Aborting." << std::endl;
+          // abort();
+          for (std::size_t i = 0; i < w.size(); ++i) { *w[i] /= w_sum; }
       }
 
       // Check if consumption vector and available species number matches
@@ -105,11 +106,6 @@ public:
       for (std::size_t i = 0; i < w.size(); ++i) { ns[i] = *w[i] * n; }
 
       gamma = w_cons_tot/n + *dTdt->get_data() / *T->get_data() - *dpdt->get_data() / *p->get_data();
-
-      // if (w_cons_tot != 0) {
-      //   std::cout << w_cons_tot << std::endl;
-      //   // abort();
-      // }
 
       // simple explicit ODE timestep
       // equation is solved for the number density
@@ -133,9 +129,7 @@ public:
     void c_update() {
       for (std::size_t i = 0; i < w.size(); ++i) {
         c[i] = *w[i];
-        // std::cout << c[i] << '\t';
       }
-      // std::cout << std::endl;
     }
 
     /// Updates gas' state

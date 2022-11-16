@@ -46,8 +46,7 @@ public:
 class hasProperPart : public hasPart {
 public:
     hasProperPart(Thing* _o0, Thing* _o1) : hasPart(_o0,_o1) {
-        if(_o0==_o1)
-            abort();
+        if(_o0==_o1) { abort(); }
     }
 
     std::string getRelationName() const { return "hasProperPart"; }
